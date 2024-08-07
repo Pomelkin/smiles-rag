@@ -1,20 +1,18 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import BaseModel
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
 
 
-class QdrantConfig(BaseModel):
+class QdrantConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
     host: str
     port: int
     collection_name: str
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(cli_parse_args=True)
-
-    qdrant: QdrantConfig
+    qdrant: QdrantConfig = QdrantConfig()
 
 
 settings = Settings()
