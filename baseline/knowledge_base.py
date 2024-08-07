@@ -114,6 +114,10 @@ class QdrantKnowledgeBase:
     @staticmethod
     def safe_truncate(text: str, start: int, stop: int) -> str:
         """Truncate text with safe bounds"""
+        # validate right bound
+        stop = stop if stop < len(text) - 1 else len(text) - 1
+
+        # find first and last spaces. This need for guarantee that we will not cut word
         while text[start] != text[stop] != " ":
             start = start - 1 if text[start] != " " and start != 0 else start
             stop = stop + 1 if text[stop] != " " and stop != len(text) - 1 else stop
