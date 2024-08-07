@@ -70,9 +70,8 @@ class QdrantKnowledgeBase:
             text_file_paths, desc="Uploading data to the vector database"
         ):
             text = text_file_path.read_text()
-            for parent_chunk_ind in tqdm(
-                range(0, len(text), parent_chunk_size - parent_chunk_overlap + 1),
-                desc=f"Uploading {text_file_path.name}",
+            for parent_chunk_ind in range(
+                0, len(text), parent_chunk_size - parent_chunk_overlap + 1
             ):
                 # get parent chunk
                 parent_chunk = self.safe_truncate(
