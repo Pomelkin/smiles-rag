@@ -1,3 +1,4 @@
+import time
 import uuid
 import torch
 from baseline.config import settings
@@ -119,10 +120,19 @@ class QdrantKnowledgeBase:
                         )
                         points.append(point)
 
-                self._qdrant_client.upsert(
-                    collection_name=self._collection_name,
-                    points=points,
-                )
+                while True:
+                    try:
+                        self._qdrant_client.upsert(
+                            collection_name=self._collection_name,
+                            points=points,
+                        )
+                        break
+                    except Exception as e:
+                        print(f"Error: {e}")
+                        print("💤 Sleeping for 5 seconds...")
+                        time.sleep(5)
+                        print("⚠️ Retrying...")
+
                 torch.cuda.empty_cache()
         return
 
