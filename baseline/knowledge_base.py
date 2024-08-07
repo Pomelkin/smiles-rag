@@ -17,7 +17,9 @@ class QdrantKnowledgeBase:
             host=settings.qdrant.host, port=settings.qdrant.port
         )
         self._collection_name = settings.qdrant.collection_name
-        self._model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True)
+        self._model = AutoModel.from_pretrained(
+            MODEL_PATH, trust_remote_code=True, device_map="auto"
+        )
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
@@ -25,6 +27,9 @@ class QdrantKnowledgeBase:
         self.validate_collection()
 
         # push model to device
+        if torch.cuda.is_available() and torch.cuda.device_count() > 1:
+            self._model = torch.nn.DataParallel(self._model)
+
         self._model.to(self._device)
 
     def validate_collection(self) -> None:
@@ -122,7 +127,7 @@ class QdrantKnowledgeBase:
         # validate right bound
         stop = stop if stop < len(text) - 1 else len(text) - 1
 
-        # find first and last spaces. This need for guarantee that we will not cut word
+        # find first and last spaces. This need for guarantee that we will not cut word in the middle.
         while (text[start] != " " and start != 0) or (
             text[stop] != " " and stop != len(text) - 1
         ):
