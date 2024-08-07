@@ -32,15 +32,22 @@ class QdrantKnowledgeBase:
         is_exists = self._qdrant_client.collection_exists(
             collection_name=settings.qdrant.collection_name
         )
-        if not is_exists:
-            print("⚠️ Collection does not exist. Creating...")
-            self._qdrant_client.create_collection(
-                collection_name=self._collection_name,
-                vectors_config=models.VectorParams(
-                    size=768,
-                    distance=models.Distance.COSINE,
-                ),
-            )
+        if is_exists:
+            print("✅ Collection exists. Cleaning...")
+            self._qdrant_client.delete_collection(collection_name=self._collection_name)
+            print("✅ Collection cleaned")
+        else:
+            print("⚠️ Collection does not exist")
+
+        print("▶️ Creating collection...")
+        self._qdrant_client.create_collection(
+            collection_name=self._collection_name,
+            vectors_config=models.VectorParams(
+                size=768,
+                distance=models.Distance.COSINE,
+            ),
+        )
+
         return
 
     def upload_data(
@@ -63,8 +70,9 @@ class QdrantKnowledgeBase:
             text_file_paths, desc="Uploading data to the vector database"
         ):
             text = text_file_path.read_text()
-            for parent_chunk_ind in range(
-                0, len(text), parent_chunk_size - parent_chunk_overlap + 1
+            for parent_chunk_ind in tqdm(
+                range(0, len(text), parent_chunk_size - parent_chunk_overlap + 1),
+                desc=f"Uploading {text_file_path.name}",
             ):
                 # get parent chunk
                 parent_chunk = self.safe_truncate(
