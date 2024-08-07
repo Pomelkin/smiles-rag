@@ -1,5 +1,5 @@
 import uuid
-
+import torch
 from .config import settings
 from qdrant_client import QdrantClient, models
 from tqdm.auto import tqdm
@@ -18,10 +18,14 @@ class QdrantKnowledgeBase:
         )
         self._collection_name = settings.qdrant.collection_name
         self._model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True)
+        self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
         # check collection
         self.validate_collection()
+
+        # push model to device
+        self._model.to(self._device)
 
     def validate_collection(self) -> None:
         """Validate collection existing. If collection does not exist - it will be created"""
@@ -85,7 +89,7 @@ class QdrantKnowledgeBase:
                     padding=True,
                     truncation=True,
                     return_tensors="pt",
-                )
+                ).to(self._device)
                 outputs = self._model(**batch_dict)
                 embeddings = outputs.last_hidden_state[:, 0]
 
