@@ -58,9 +58,9 @@ class QdrantKnowledgeBase:
     def upload_data(
         self,
         path: str | Path,
-        parent_chunk_size: int = 21_000,
-        child_chunk_size: int = 7_000,
-        parent_chunk_overlap: int = 3_000,
+        parent_chunk_size: int = 8_000,
+        child_chunk_size: int = 2_000,
+        parent_chunk_overlap: int = 1_000,
     ) -> None:
         """Upload data to the vector database for RAG benchmark"""
         if isinstance(path, str):
@@ -119,7 +119,7 @@ class QdrantKnowledgeBase:
                             payload={"text": parent_chunk},
                             vector=embeddings[embedding_ind].cpu().tolist(),
                         )
-                        # Append point using deepcopy to avoid shallow copy, therefore avoiding identical points
+                        # Append point using deepcopy to avoid shallow copy, hence to avoid identical points
                         points.append(copy.deepcopy(point))
 
                 # Upload points to qdrant. Retry if error raised
