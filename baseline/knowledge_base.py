@@ -57,7 +57,7 @@ class QdrantKnowledgeBase:
     def upload_data(
         self,
         path: str | Path,
-        parent_chunk_size: int = 5_000,
+        parent_chunk_size: int = 6_000,
         child_chunk_size: int = 1_000,
         parent_chunk_overlap: int = 500,
     ) -> None:
@@ -120,6 +120,7 @@ class QdrantKnowledgeBase:
                         )
                         points.append(point)
 
+                # Upload points to qdrant. Retry if error raised
                 while True:
                     try:
                         self._qdrant_client.upsert(
