@@ -97,7 +97,7 @@ class QdrantKnowledgeBase:
                 points = []
                 for embedding_ind in range(embeddings.shape[0]):
                     point = models.PointStruct(
-                        id=uuid.uuid4(),
+                        id=uuid.uuid4().hex,
                         payload={"text": parent_chunk},
                         vector=embeddings[embedding_ind].cpu().tolist(),
                     )
