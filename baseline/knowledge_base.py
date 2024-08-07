@@ -17,16 +17,14 @@ class QdrantKnowledgeBase:
             host=settings.qdrant.host, port=settings.qdrant.port
         )
         self._collection_name = settings.qdrant.collection_name
-        self._model = AutoModel.from_pretrained(
-            MODEL_PATH, trust_remote_code=True, device_map="auto"
-        )
+        self._model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True)
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
         # check collection
         self.validate_collection()
 
-        # push model to device
+        # push model to device/devices
         if torch.cuda.is_available() and torch.cuda.device_count() > 1:
             self._model = torch.nn.DataParallel(self._model)
 
