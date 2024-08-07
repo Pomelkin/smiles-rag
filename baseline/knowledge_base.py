@@ -32,7 +32,7 @@ class QdrantKnowledgeBase:
         is_exists = self._qdrant_client.collection_exists(
             collection_name=settings.qdrant.collection_name
         )
-        if is_exists is None:
+        if not is_exists:
             print("⚠️ Collection does not exist. Creating...")
             self._qdrant_client.create_collection(
                 collection_name=self._collection_name,
