@@ -57,9 +57,9 @@ class QdrantKnowledgeBase:
     def upload_data(
         self,
         path: str | Path,
-        parent_chunk_size: int = 10_000,
-        child_chunk_size: int = 2_000,
-        parent_chunk_overlap: int = 1_000,
+        parent_chunk_size: int = 5_000,
+        child_chunk_size: int = 1_000,
+        parent_chunk_overlap: int = 500,
     ) -> None:
         """Upload data to the vector database for RAG benchmark"""
         if isinstance(path, str):
