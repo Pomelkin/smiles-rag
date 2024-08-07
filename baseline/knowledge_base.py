@@ -1,6 +1,6 @@
 import uuid
 import torch
-from .config import settings
+from baseline.config import settings
 from qdrant_client import QdrantClient, models
 from tqdm.auto import tqdm
 from pathlib import Path

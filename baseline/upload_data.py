@@ -1,5 +1,5 @@
 import argparse
-from .knowledge_base import QdrantKnowledgeBase
+from baseline.knowledge_base import QdrantKnowledgeBase
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
