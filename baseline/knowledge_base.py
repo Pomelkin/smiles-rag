@@ -6,6 +6,7 @@ from qdrant_client import QdrantClient, models
 from tqdm.auto import tqdm
 from pathlib import Path
 import copy
+import torch.nn.functional as F
 from transformers import AutoModel, AutoTokenizer
 
 MODEL_PATH = "Alibaba-NLP/gte-base-en-v1.5"
@@ -111,6 +112,7 @@ class QdrantKnowledgeBase:
                     ).to(self._device)
                     outputs = self._model(**batch_dict)
                     embeddings = outputs.last_hidden_state[:, 0]
+                    embeddings = F.normalize(embeddings, p=2, dim=1)
 
                     # preprocess and insert embeddings
                     for embedding_ind in range(embeddings.shape[0]):
