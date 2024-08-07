@@ -63,6 +63,7 @@ class QdrantKnowledgeBase:
             text_file_paths, desc="Uploading data to the vector database"
         ):
             text = text_file_path.read_text()
+            print(f"Uploading file: {text_file_path}, total length: {len(text)}")
             for parent_chunk_ind in range(
                 0, len(text), parent_chunk_size - parent_chunk_overlap + 1
             ):
@@ -72,6 +73,7 @@ class QdrantKnowledgeBase:
                     start=parent_chunk_ind,
                     stop=parent_chunk_ind + parent_chunk_size - parent_chunk_overlap,
                 )
+                print(f"Parent chunk length: {len(parent_chunk)}")
                 # get child chunks
                 child_chunks = [
                     self.safe_truncate(
@@ -81,7 +83,7 @@ class QdrantKnowledgeBase:
                     )
                     for chunk_ind in range(0, len(parent_chunk), child_chunk_size + 1)
                 ]
-
+                print(f"Child chunks length: {len(child_chunks)}")
                 # get embeddings
                 batch_dict = self._tokenizer(
                     child_chunks,
