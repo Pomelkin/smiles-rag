@@ -124,7 +124,9 @@ class QdrantKnowledgeBase:
         stop = stop if stop < len(text) - 1 else len(text) - 1
 
         # find first and last spaces. This need for guarantee that we will not cut word
-        while text[start] != text[stop] != " ":
+        while (text[start] != " " or start == 0) and (
+            text[stop] != " " or stop == len(text) - 1
+        ):
             start = start - 1 if text[start] != " " and start != 0 else start
             stop = stop + 1 if text[stop] != " " and stop != len(text) - 1 else stop
         return text[start : stop + 1]
