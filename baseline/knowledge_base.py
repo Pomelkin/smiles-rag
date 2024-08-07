@@ -91,7 +91,7 @@ class QdrantKnowledgeBase:
                     )
                     for chunk_ind in range(0, len(parent_chunk), child_chunk_size + 1)
                 ]
-                print(child_chunks)
+
                 batch_size = len(child_chunks) // 2
                 points = []
                 for batch_ind in range(0, len(child_chunks), batch_size):
