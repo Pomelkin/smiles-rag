@@ -58,8 +58,8 @@ class QdrantKnowledgeBase:
         self,
         path: str | Path,
         parent_chunk_size: int = 6_000,
-        child_chunk_size: int = 1_000,
-        parent_chunk_overlap: int = 500,
+        child_chunk_size: int = 2_000,
+        parent_chunk_overlap: int = 1_000,
     ) -> None:
         """Upload data to the vector database for RAG benchmark"""
         if isinstance(path, str):
