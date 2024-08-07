@@ -92,31 +92,36 @@ class QdrantKnowledgeBase:
                     for chunk_ind in range(0, len(parent_chunk), child_chunk_size + 1)
                 ]
 
-                # get embeddings
-                batch_dict = self._tokenizer(
-                    child_chunks,
-                    max_length=8192,
-                    padding=True,
-                    truncation=True,
-                    return_tensors="pt",
-                ).to(self._device)
-                outputs = self._model(**batch_dict)
-                embeddings = outputs.last_hidden_state[:, 0]
-
-                # preprocess and insert embeddings
+                batch_size = len(child_chunks) // 2
                 points = []
-                for embedding_ind in range(embeddings.shape[0]):
-                    point = models.PointStruct(
-                        id=uuid.uuid4().hex,
-                        payload={"text": parent_chunk},
-                        vector=embeddings[embedding_ind].cpu().tolist(),
-                    )
-                    points.append(point)
+                for batch_ind in range(0, len(child_chunks), batch_size):
+                    batch = child_chunks[batch_ind : batch_ind + batch_size]
+
+                    # get embeddings
+                    batch_dict = self._tokenizer(
+                        batch,
+                        max_length=8192,
+                        padding=True,
+                        truncation=True,
+                        return_tensors="pt",
+                    ).to(self._device)
+                    outputs = self._model(**batch_dict)
+                    embeddings = outputs.last_hidden_state[:, 0]
+
+                    # preprocess and insert embeddings
+                    for embedding_ind in range(embeddings.shape[0]):
+                        point = models.PointStruct(
+                            id=uuid.uuid4().hex,
+                            payload={"text": parent_chunk},
+                            vector=embeddings[embedding_ind].cpu().tolist(),
+                        )
+                        points.append(point)
 
                 self._qdrant_client.upsert(
                     collection_name=self._collection_name,
                     points=points,
                 )
+                torch.cuda.empty_cache()
         return
 
     @staticmethod
