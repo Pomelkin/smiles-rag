@@ -115,6 +115,6 @@ class QdrantKnowledgeBase:
     def safe_truncate(text: str, start: int, stop: int) -> str:
         """Truncate text with safe bounds"""
         while text[start] != text[stop] != " ":
-            start = start - 1 if text[start] != " " else start
-            stop = stop + 1 if text[stop] != " " else stop
+            start = start - 1 if text[start] != " " or start == 0 else start
+            stop = stop + 1 if text[stop] != " " or stop == len(text) - 1 else stop
         return text[start : stop + 1]
