@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).parent.parent
 class QdrantConfig(BaseModel):
     host: str
     port: int
+    collection_name: str
 
 
 class Settings(BaseSettings):
