@@ -5,6 +5,7 @@ from baseline.config import settings
 from qdrant_client import QdrantClient, models
 from tqdm.auto import tqdm
 from pathlib import Path
+import copy
 from transformers import AutoModel, AutoTokenizer
 
 MODEL_PATH = "Alibaba-NLP/gte-base-en-v1.5"
@@ -57,9 +58,9 @@ class QdrantKnowledgeBase:
     def upload_data(
         self,
         path: str | Path,
-        parent_chunk_size: int = 6_000,
-        child_chunk_size: int = 2_000,
-        parent_chunk_overlap: int = 1_000,
+        parent_chunk_size: int = 21_000,
+        child_chunk_size: int = 7_000,
+        parent_chunk_overlap: int = 3_000,
     ) -> None:
         """Upload data to the vector database for RAG benchmark"""
         if isinstance(path, str):
@@ -118,7 +119,8 @@ class QdrantKnowledgeBase:
                             payload={"text": parent_chunk},
                             vector=embeddings[embedding_ind].cpu().tolist(),
                         )
-                        points.append(point)
+                        # Append point using deepcopy to avoid shallow copy, therefore avoiding identical points
+                        points.append(copy.deepcopy(point))
 
                 # Upload points to qdrant. Retry if error raised
                 while True:
