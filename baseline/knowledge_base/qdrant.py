@@ -1,11 +1,14 @@
 import time
 import uuid
+
+import numpy as np
 import torch
 from baseline.config import settings
 from qdrant_client import QdrantClient, models
 from tqdm.auto import tqdm
 from pathlib import Path
 import copy
+from .utils import safe_truncate
 import torch.nn.functional as F
 from transformers import AutoModel, AutoTokenizer
 
@@ -30,10 +33,12 @@ class QdrantKnowledgeBase:
         # push model to device/devices
         print("-- Total number of devices: ", torch.cuda.device_count())
         if torch.cuda.is_available() and torch.cuda.device_count() > 1:
-            print("-- ‼️Using multiple GPUs")
+            print("-- Using multiple GPUs")
             self._model = torch.nn.DataParallel(self._model)
+        elif torch.cuda.is_available():
+            print("-- Using single GPU")
         else:
-            print("-- ‼️Using single GPU")
+            print("-- Using CPU")
 
         self._model.to(self._device)
         self._model.eval()
@@ -45,13 +50,23 @@ class QdrantKnowledgeBase:
             collection_name=settings.qdrant.collection_name
         )
         if is_exists:
-            print("✅ Collection exists. Cleaning...")
-            self._qdrant_client.delete_collection(collection_name=self._collection_name)
-            print("✅ Collection cleaned")
+            print("✅ Collection exists.")
         else:
             print("⚠️ Collection does not exist")
+            print("\n▶️ Creating collection...")
+            self._qdrant_client.create_collection(
+                collection_name=self._collection_name,
+                vectors_config=models.VectorParams(
+                    size=768,
+                    distance=models.Distance.COSINE,
+                ),
+            )
+        return
 
-        print("▶️ Creating collection...")
+    def clear_collection(self) -> None:
+        """Clear collection and create new one"""
+        print("Clearing...")
+        self._qdrant_client.delete_collection(collection_name=self._collection_name)
         self._qdrant_client.create_collection(
             collection_name=self._collection_name,
             vectors_config=models.VectorParams(
@@ -59,7 +74,7 @@ class QdrantKnowledgeBase:
                 distance=models.Distance.COSINE,
             ),
         )
-
+        print("✅ Collection cleared")
         return
 
     def upload_data(
@@ -72,28 +87,30 @@ class QdrantKnowledgeBase:
         """Upload data to the vector database for RAG benchmark"""
         if isinstance(path, str):
             path = Path(path)
-
         # search files with text
         text_file_paths = [_ for _ in path.glob("**/*.txt")]
         print("=" * 100 + "\n" + f"total files: {len(text_file_paths)}")
+
+        self.clear_collection()
 
         # extract chunks and upload to qdrant
         for text_file_path in tqdm(
             text_file_paths, desc="Uploading data to the vector database"
         ):
             text = text_file_path.read_text()
+
             for parent_chunk_ind in range(
                 0, len(text), parent_chunk_size - parent_chunk_overlap + 1
             ):
                 # get parent chunk
-                parent_chunk = self.safe_truncate(
+                parent_chunk = safe_truncate(
                     text=text,
                     start=parent_chunk_ind,
                     stop=parent_chunk_ind + parent_chunk_size - parent_chunk_overlap,
                 )
                 # get child chunks
                 child_chunks = [
-                    self.safe_truncate(
+                    safe_truncate(
                         text=parent_chunk,
                         start=chunk_ind,
                         stop=chunk_ind + child_chunk_size,
@@ -107,7 +124,6 @@ class QdrantKnowledgeBase:
                 points = []
                 for batch_ind in range(0, len(child_chunks), batch_size):
                     batch = child_chunks[batch_ind : batch_ind + batch_size]
-
                     # get embeddings
                     batch_dict = self._tokenizer(
                         batch,
@@ -119,7 +135,6 @@ class QdrantKnowledgeBase:
                     outputs = self._model(**batch_dict)
                     embeddings = outputs.last_hidden_state[:, 0]
                     embeddings = F.normalize(embeddings, p=2, dim=1)
-
                     # preprocess and insert embeddings
                     for embedding_ind in range(embeddings.shape[0]):
                         point = models.PointStruct(
@@ -143,20 +158,23 @@ class QdrantKnowledgeBase:
                         print("💤 Sleeping for 5 seconds...")
                         time.sleep(5)
                         print("⚠️ Retrying...")
-
                 torch.cuda.empty_cache()
         return
 
-    @staticmethod
-    def safe_truncate(text: str, start: int, stop: int) -> str:
-        """Truncate text with safe bounds"""
-        # validate right bound
-        stop = stop if stop < len(text) - 1 else len(text) - 1
+    def get_similar_points(
+        self, query: torch.Tensor | list[float] | np.ndarray[float], k_nearest: int = 9
+    ) -> list[models.ScoredPoint]:
+        """Get similar points (vectors) base on Cosine distance between query and vectors in the collection"""
+        if isinstance(query, torch.Tensor):
+            query = query.cpu().numpy()
 
-        # find first and last spaces. This need for guarantee that we will not cut word in the middle.
-        while (text[start] != " " and start != 0) or (
-            text[stop] != " " and stop != len(text) - 1
-        ):
-            start = start - 1 if text[start] != " " and start != 0 else start
-            stop = stop + 1 if text[stop] != " " and stop != len(text) - 1 else stop
-        return text[start : stop + 1]
+        assert len(query) == 768, "Query vector must have 768 dimensions"
+
+        points = self._qdrant_client.search(
+            collection_name=self._collection_name,
+            query_vector=query,
+            limit=k_nearest,
+            with_payload=True,
+            with_vectors=True,
+        )
+        return points
