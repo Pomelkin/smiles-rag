@@ -16,7 +16,7 @@ if __name__ == "__main__":
         "--child_chunk_size", type=int, help="Child chunk size", default=1_000
     )
     parser.add_argument(
-        "--parent_chunk_overlap", type=float, help="Parent chunk overlap", default=1_000
+        "--parent_chunk_overlap", type=int, help="Parent chunk overlap", default=1_000
     )
 
     args = parser.parse_args()
