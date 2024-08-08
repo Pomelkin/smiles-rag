@@ -102,7 +102,7 @@ class QdrantKnowledgeBase:
                 ]
 
                 # get batch size
-                batch_size = len(child_chunks) // 3 if len(child_chunks) > 2 else 1
+                batch_size = len(child_chunks) // 4 if len(child_chunks) > 3 else 1
 
                 points = []
                 for batch_ind in range(0, len(child_chunks), batch_size):
