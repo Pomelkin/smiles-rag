@@ -64,7 +64,7 @@ class QdrantKnowledgeBase:
 
     def clear_collection(self) -> None:
         """Clear collection and create new one"""
-        print("Clearing...")
+        print("Clearing collection...")
         self._qdrant_client.delete_collection(collection_name=self._collection_name)
         self._qdrant_client.create_collection(
             collection_name=self._collection_name,
@@ -84,8 +84,11 @@ class QdrantKnowledgeBase:
         parent_chunk_overlap: int = 1_000,
     ) -> None:
         """Upload data to the vector database for RAG benchmark"""
+        print("=" * 100 + "\nStarting uploading data to the vector database")
+
         if isinstance(path, str):
             path = Path(path)
+
         # search files with text
         text_file_paths = [_ for _ in path.glob("**/*.txt")]
         print("=" * 100 + "\n" + f"total files: {len(text_file_paths)}")
@@ -123,6 +126,7 @@ class QdrantKnowledgeBase:
                 points = []
                 for batch_ind in range(0, len(child_chunks), batch_size):
                     batch = child_chunks[batch_ind : batch_ind + batch_size]
+
                     # get embeddings
                     batch_dict = self._tokenizer(
                         batch,
@@ -134,6 +138,7 @@ class QdrantKnowledgeBase:
                     outputs = self._model(**batch_dict)
                     embeddings = outputs.last_hidden_state[:, 0]
                     embeddings = F.normalize(embeddings, p=2, dim=1)
+
                     # preprocess and insert embeddings
                     for embedding_ind in range(embeddings.shape[0]):
                         point = models.PointStruct(
@@ -143,7 +148,6 @@ class QdrantKnowledgeBase:
                         )
                         # Append point using deepcopy to avoid shallow copy, hence to avoid identical points
                         points.append(copy.deepcopy(point))
-
                 # Upload points to qdrant. Retry if error raised
                 while True:
                     try:
