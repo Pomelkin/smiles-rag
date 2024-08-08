@@ -121,8 +121,8 @@ class QdrantKnowledgeBase:
                     for chunk_ind in range(0, len(parent_chunk), child_chunk_size + 1)
                 ]
 
-                # get batch size
-                batch_size = len(child_chunks) // 4 if len(child_chunks) > 3 else 1
+                # split data into 2 groups (due to OOM) and get batch size
+                batch_size = len(child_chunks) // 2 if len(child_chunks) > 1 else 1
 
                 points = []
                 for batch_ind in range(0, len(child_chunks), batch_size):
