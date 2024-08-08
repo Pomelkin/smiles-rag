@@ -28,10 +28,16 @@ class QdrantKnowledgeBase:
         self.validate_collection()
 
         # push model to device/devices
+        print("-- Total number of devices: ", torch.cuda.device_count())
         if torch.cuda.is_available() and torch.cuda.device_count() > 1:
+            print("-- ‼️Using multiple GPUs")
             self._model = torch.nn.DataParallel(self._model)
+        else:
+            print("-- ‼️Using single GPU")
+            self._model.to(self._device)
 
-        self._model.to(self._device)
+        self._model.eval()
+        torch.set_grad_enabled(False)
 
     def validate_collection(self) -> None:
         """Validate collection existing. If collection does not exist - it will be created"""
