@@ -10,10 +10,10 @@ if __name__ == "__main__":
         "--path_to_data", type=str, required=True, help="Path to dataset"
     )
     parser.add_argument(
-        "--parent_chunk_size", type=int, help="Parent chunk size", default=10_000
+        "--parent_chunk_size", type=int, help="Parent chunk size", default=4_000
     )
     parser.add_argument(
-        "--child_chunk_size", type=int, help="Child chunk size", default=2_000
+        "--child_chunk_size", type=int, help="Child chunk size", default=1_000
     )
     parser.add_argument(
         "--parent_chunk_overlap", type=float, help="Parent chunk overlap", default=1_000

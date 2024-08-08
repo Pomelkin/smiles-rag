@@ -1,6 +1,7 @@
 import time
 import uuid
 
+import numpy as np
 import torch
 from baseline.config import settings
 from qdrant_client import QdrantClient, models
@@ -79,9 +80,9 @@ class QdrantKnowledgeBase:
     def upload_data(
         self,
         path: str | Path,
-        parent_chunk_size: int = 8_000,
-        child_chunk_size: int = 2_000,
-        parent_chunk_overlap: int = 1_000,
+        parent_chunk_size: int,
+        child_chunk_size: int,
+        parent_chunk_overlap: int,
     ) -> None:
         """Upload data to the vector database for RAG benchmark"""
         print("=" * 100 + "\nStarting uploading data to the vector database")
@@ -166,7 +167,7 @@ class QdrantKnowledgeBase:
 
     def get_similar_points(
         self, query: str, k_nearest: int = 9
-    ) -> list[models.ScoredPoint]:
+    ) -> tuple[list[models.ScoredPoint], np.ndarray]:
         """Get similar points (vectors) base on Cosine distance between query and vectors in the collection"""
 
         tokens = self._tokenizer(
@@ -174,14 +175,15 @@ class QdrantKnowledgeBase:
         ).to(self._device)
 
         outputs = self._model(**tokens)
-        embeddings = outputs.last_hidden_state[:, 0]
-        embeddings = F.normalize(embeddings, p=2, dim=1)
+        embedding = outputs.last_hidden_state[:, 0]
+        embedding = F.normalize(embedding, p=2, dim=1)
 
+        embedding_np = embedding[0].cpu().numpy()
         points = self._qdrant_client.search(
             collection_name=self._collection_name,
-            query_vector=embeddings[0].cpu().numpy(),
+            query_vector=embedding_np,
             limit=k_nearest,
             with_payload=True,
             with_vectors=True,
         )
-        return points
+        return points, embedding_np

@@ -6,14 +6,14 @@ BASE_DIR = Path(__file__).parent.parent
 
 
 class QdrantConfig(BaseSettings):
-    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
     host: str
     port: int
     collection_name: str
 
 
 class LLMAPIConfig(BaseSettings):
-    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
     url: AnyHttpUrl | None = None
     key: str
 
