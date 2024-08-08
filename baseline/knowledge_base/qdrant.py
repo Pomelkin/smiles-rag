@@ -83,6 +83,7 @@ class QdrantKnowledgeBase:
         parent_chunk_size: int,
         child_chunk_size: int,
         parent_chunk_overlap: int,
+        batch_chunks: int,
     ) -> None:
         """Upload data to the vector database for RAG benchmark"""
         print("=" * 100 + "\nStarting uploading data to the vector database")
@@ -122,7 +123,11 @@ class QdrantKnowledgeBase:
                 ]
 
                 # split data into 2 groups (due to OOM) and get batch size
-                batch_size = len(child_chunks) // 2 if len(child_chunks) > 1 else 1
+                batch_size = (
+                    len(child_chunks) // batch_chunks
+                    if len(child_chunks) > batch_chunks - 1
+                    else 1
+                )
 
                 points = []
                 for batch_ind in range(0, len(child_chunks), batch_size):

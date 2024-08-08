@@ -18,6 +18,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--parent_chunk_overlap", type=int, help="Parent chunk overlap", default=1_000
     )
+    parser.add_argument("--batch_chunks", type=int, help="Batch chunks", default=1)
 
     args = parser.parse_args()
 
@@ -28,4 +29,5 @@ if __name__ == "__main__":
         parent_chunk_size=args.parent_chunk_size,
         child_chunk_size=args.child_chunk_size,
         parent_chunk_overlap=args.parent_chunk_overlap,
+        batch_chunks=args.batch_chunks,
     )
