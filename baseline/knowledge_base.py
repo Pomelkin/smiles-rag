@@ -34,8 +34,8 @@ class QdrantKnowledgeBase:
             self._model = torch.nn.DataParallel(self._model)
         else:
             print("-- ‼️Using single GPU")
-            self._model.to(self._device)
 
+        self._model.to(self._device)
         self._model.eval()
         torch.set_grad_enabled(False)
 
