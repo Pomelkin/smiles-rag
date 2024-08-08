@@ -102,14 +102,14 @@ class QdrantKnowledgeBase:
         ):
             text = text_file_path.read_text()
 
-            for parent_chunk_ind in range(
-                0, len(text), parent_chunk_size - parent_chunk_overlap + 1
-            ):
+            for parent_chunk_ind in range(0, len(text), parent_chunk_size + 1):
                 # get parent chunk
                 parent_chunk = safe_truncate(
                     text=text,
-                    start=parent_chunk_ind,
-                    stop=parent_chunk_ind + parent_chunk_size - parent_chunk_overlap,
+                    start=parent_chunk_ind - parent_chunk_overlap // 2,
+                    stop=parent_chunk_ind
+                    + parent_chunk_size
+                    + parent_chunk_overlap // 2,
                 )
                 # get child chunks
                 child_chunks = [
