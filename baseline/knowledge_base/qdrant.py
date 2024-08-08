@@ -1,7 +1,6 @@
 import time
 import uuid
 
-import numpy as np
 import torch
 from baseline.config import settings
 from qdrant_client import QdrantClient, models
@@ -162,17 +161,21 @@ class QdrantKnowledgeBase:
         return
 
     def get_similar_points(
-        self, query: torch.Tensor | list[float] | np.ndarray[float], k_nearest: int = 9
+        self, query: str, k_nearest: int = 9
     ) -> list[models.ScoredPoint]:
         """Get similar points (vectors) base on Cosine distance between query and vectors in the collection"""
-        if isinstance(query, torch.Tensor):
-            query = query.cpu().numpy()
 
-        assert len(query) == 768, "Query vector must have 768 dimensions"
+        tokens = self._tokenizer(
+            query, max_length=8192, truncation=True, return_tensors="pt"
+        ).to(self._device)
+
+        outputs = self._model(**tokens)
+        embeddings = outputs.last_hidden_state[:, 0]
+        embeddings = F.normalize(embeddings, p=2, dim=1)
 
         points = self._qdrant_client.search(
             collection_name=self._collection_name,
-            query_vector=query,
+            query_vector=embeddings[0].cpu().numpy(),
             limit=k_nearest,
             with_payload=True,
             with_vectors=True,
