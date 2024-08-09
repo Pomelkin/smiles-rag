@@ -91,7 +91,7 @@ class QdrantKnowledgeBase:
         total_keys = client.dbsize()
         print(f"Total keys: {total_keys}")
 
-        if len(total_keys) == 0:
+        if total_keys == 0:
             for text_path in tqdm(text_paths, desc="Caching text"):
                 text = text_path.read_text()
                 client.set(str(text_path), text)
