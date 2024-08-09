@@ -126,6 +126,7 @@ class QdrantKnowledgeBase:
             f"total sliced files: {len(text_file_path)}. Sliced from {start} to {stop}"
         )
 
+        # prepare cache and collection if needed
         if slice_start == 0 and slice_stop == -1:
             self.clear_collection()
         cache_client = (
