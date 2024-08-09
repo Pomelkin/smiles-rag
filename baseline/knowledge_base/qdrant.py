@@ -21,7 +21,7 @@ class QdrantKnowledgeBase:
 
     def __init__(self):
         self._qdrant_client = QdrantClient(
-            host=settings.qdrant.host, port=settings.qdrant.port, timeout=60
+            host=settings.qdrant.host, port=settings.qdrant.port, timeout=20
         )
         self._collection_name = settings.qdrant.collection_name
         self._model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True)
