@@ -1,6 +1,6 @@
 import time
 import uuid
-
+import os
 import numpy as np
 import torch
 from baseline.config import settings
@@ -10,6 +10,7 @@ from pathlib import Path
 import copy
 from .utils import safe_truncate
 import torch.nn.functional as F
+import redis
 from transformers import AutoModel, AutoTokenizer
 
 MODEL_PATH = "Alibaba-NLP/gte-base-en-v1.5"
@@ -77,6 +78,25 @@ class QdrantKnowledgeBase:
         print("✅ Collection cleared")
         return
 
+    @staticmethod
+    def prepare_text_cache(text_paths: list[Path]) -> redis.Redis:
+        """Prepare text cache for RAG"""
+        redis_host = os.getenv("REDIS_HOST", "localhost")
+        redis_port = os.getenv("REDIS_PORT", 6379)
+
+        client = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
+        assert client.ping(), "Redis connection failed"
+
+        print("""🏎️ Redis connection established""")
+        total_keys = client.dbsize()
+        print(f"Total keys: {total_keys}")
+
+        if len(total_keys) == 0:
+            for text_path in tqdm(text_paths, desc="Caching text"):
+                text = text_path.read_text()
+                client.set(str(text_path), text)
+        return client
+
     def upload_data(
         self,
         path: str | Path,
@@ -84,6 +104,7 @@ class QdrantKnowledgeBase:
         child_chunk_size: int,
         parent_chunk_overlap: int,
         batch_chunks: int,
+        use_text_cache: bool = True,
     ) -> None:
         """Upload data to the vector database for RAG benchmark"""
         print("=" * 100 + "\nStarting uploading data to the vector database")
@@ -96,12 +117,26 @@ class QdrantKnowledgeBase:
         print("=" * 100 + "\n" + f"total files: {len(text_file_paths)}")
 
         self.clear_collection()
+        cache_client = (
+            self.prepare_text_cache(text_paths=text_file_paths)
+            if use_text_cache
+            else None
+        )
 
         # extract chunks and upload to qdrant
         for text_file_path in tqdm(
             text_file_paths, desc="Uploading data to the vector database"
         ):
-            text = text_file_path.read_text()
+            if cache_client is not None:
+                # try to retrieve text from cache
+                text = cache_client.get(str(text_file_path))
+                # cache miss: read from disk and cache
+                if text is None:
+                    text = text_file_path.read_text()
+                    cache_client.set(str(text_file_path), text)
+            else:
+                # no cache client: read directly from disk
+                text = text_file_path.read_text()
 
             for parent_chunk_ind in range(0, len(text), parent_chunk_size + 1):
                 # get parent chunk

@@ -11,6 +11,11 @@ services:
     environment:
       - QDRANT_HOST=0.0.0.0
       - QDRANT_PORT=6333
+  redis:
+    container_name: redis-cache
+    image: redis:latest
+    ports:
+
 
 volumes:
   qdrant-volume:
