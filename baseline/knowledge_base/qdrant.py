@@ -87,7 +87,7 @@ class QdrantKnowledgeBase:
         client = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
         assert client.ping(), "Redis connection failed"
 
-        print("""🏎️ Redis connection established""")
+        print("""🏎️  Redis connection established""")
         total_keys = client.dbsize()
         print(f"Total keys: {total_keys}")
 
@@ -191,6 +191,7 @@ class QdrantKnowledgeBase:
                         points.append(copy.deepcopy(point))
                 # Upload points to qdrant. Retry if error raised
                 while True:
+                    except_count = 0
                     try:
                         self._qdrant_client.upsert(
                             collection_name=self._collection_name,
@@ -198,10 +199,16 @@ class QdrantKnowledgeBase:
                         )
                         break
                     except Exception as e:
+                        except_count += 1
+                        if except_count == 10:
+                            print(
+                                "❌  Error uploading data to the vector database, skipping..."
+                            )
+                            break
                         print(f"Error: {e}")
-                        print("💤 Sleeping for 5 seconds...")
-                        time.sleep(5)
-                        print("⚠️ Retrying...")
+                        print(f"💤  Sleeping for {5 * except_count} seconds...")
+                        time.sleep(5 * except_count)
+                        print("⚠️  Retrying...")
                 torch.cuda.empty_cache()
         return
 
