@@ -121,9 +121,9 @@ class QdrantKnowledgeBase:
         # slice paths
         start = slice_start
         stop = len(text_file_paths) if slice_stop == -1 else slice_stop
-        text_file_path = text_file_paths[start:stop]
+        text_file_paths = text_file_paths[start:stop]
         print(
-            f"total sliced files: {len(text_file_path)}. Sliced from {start} to {stop}"
+            f"total sliced files: {len(text_file_paths)}. Sliced from {start} to {stop}"
         )
 
         # prepare cache and collection if needed
