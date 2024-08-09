@@ -20,6 +20,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--batch_chunks", type=int, help="Batch chunks", default=1)
     parser.add_argument("--using_cache", type=bool, help="Using cache", default=True)
+    parser.add_argument("--slice_start", type=int, help="Slice start", default=0)
+    parser.add_argument("--slice_stop", type=int, help="Slice stop", default=-1)
 
     args = parser.parse_args()
 
@@ -32,4 +34,6 @@ if __name__ == "__main__":
         parent_chunk_overlap=args.parent_chunk_overlap,
         batch_chunks=args.batch_chunks,
         use_text_cache=args.using_cache,
+        slice_start=args.slice_start,
+        slice_stop=args.slice_stop,
     )

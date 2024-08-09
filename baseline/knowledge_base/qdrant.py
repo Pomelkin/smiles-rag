@@ -104,6 +104,8 @@ class QdrantKnowledgeBase:
         child_chunk_size: int,
         parent_chunk_overlap: int,
         batch_chunks: int,
+        slice_start: int,
+        slice_stop: int,
         use_text_cache: bool = True,
     ) -> None:
         """Upload data to the vector database for RAG benchmark"""
@@ -116,12 +118,23 @@ class QdrantKnowledgeBase:
         text_file_paths = [_ for _ in path.glob("**/*.txt")]
         print("=" * 100 + "\n" + f"total files: {len(text_file_paths)}")
 
-        self.clear_collection()
+        # slice paths
+        start = slice_start
+        stop = len(text_file_paths) if slice_stop == -1 else slice_stop
+        text_file_path = text_file_paths[start:stop]
+        print(
+            f"total sliced files: {len(text_file_path)}. Sliced from {start} to {stop}"
+        )
+
+        if slice_start == 0 and slice_stop == -1:
+            self.clear_collection()
         cache_client = (
             self.prepare_text_cache(text_paths=text_file_paths)
             if use_text_cache
             else None
         )
+
+        print("\n" + "-" * 100)
 
         # extract chunks and upload to qdrant
         for text_file_path in tqdm(
@@ -190,8 +203,8 @@ class QdrantKnowledgeBase:
                         # Append point using deepcopy to avoid shallow copy, hence to avoid identical points
                         points.append(copy.deepcopy(point))
                 # Upload points to qdrant. Retry if error raised
+                exception_count = 0
                 while True:
-                    except_count = 0
                     try:
                         self._qdrant_client.upsert(
                             collection_name=self._collection_name,
@@ -199,15 +212,15 @@ class QdrantKnowledgeBase:
                         )
                         break
                     except Exception as e:
-                        except_count += 1
-                        if except_count == 10:
+                        exception_count += 1
+                        if exception_count == 10:
                             print(
                                 "❌  Error uploading data to the vector database, skipping..."
                             )
                             break
                         print(f"Error: {e}")
-                        print(f"💤  Sleeping for {5 * except_count} seconds...")
-                        time.sleep(5 * except_count)
+                        print(f"💤  Sleeping for {5 * exception_count} seconds...")
+                        time.sleep(5 * exception_count)
                         print("⚠️  Retrying...")
                 torch.cuda.empty_cache()
         return
