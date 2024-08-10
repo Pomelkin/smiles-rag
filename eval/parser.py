@@ -29,7 +29,7 @@ class DataParser:
         print(f"▶️ Found {len(file_paths)} markup files")
         return file_paths
 
-    def __getitem__(self, ind: int) -> Generator[dict[str, str]]:
+    def __getitem__(self, ind: int) -> Generator[dict[str, str], None, None]:
         """Yields instances of preprocessed data from json with markup. JSON file is accessed by index.
         Output dict structure: {"question":question, "gt_answer":gt_answer}"""
         file_path = self._file_paths[ind]
