@@ -7,7 +7,6 @@ from .utils import (
     calculate_centroid_distance,
     EstimatedPoint,
 )
-import string
 from baseline.config import settings
 import copy
 
@@ -62,7 +61,7 @@ class Drafter:
             for point in points:
                 data = point.point.payload["text"]
                 prompt = user_prompt.format(query, data)
-                
+
                 future = executor.submit(
                     client.chat.completions.create,
                     model="neuralmagic/gemma-2-2b-it-FP8",
@@ -76,7 +75,8 @@ class Drafter:
                 )
                 futures.append(future)
             # Run async tasks
-            results = [future.result() for future in concurrent.futures.wait(futures)]
+            done, _ = concurrent.futures.wait(futures)
+            results = [future.result() for future in done]
             # Process outputs
             answers = [result.choices[0].message for result in results]
         return answers

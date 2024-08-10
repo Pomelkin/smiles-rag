@@ -20,8 +20,8 @@ class DrafterAPIConfig(BaseSettings):
 
 class GeneratorAPIConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
-    generator_url: str | None = Field(alias="GENERATOR_URL", default=None)
-    generator_key: str = Field(alias="GENERATOR_KEY", default="")
+    url: str | None = Field(alias="GENERATOR_URL", default=None)
+    key: str = Field(alias="GENERATOR_KEY", default="")
 
 
 class Settings(BaseSettings):
