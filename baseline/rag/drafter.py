@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 import concurrent
 from qdrant_client import models
 
-from baseline.prompts.gemma import system_prompt, user_prompt
+from baseline.prompts.gemma import user_prompt
 
 
 class Drafter:
@@ -66,7 +66,6 @@ class Drafter:
                     client.chat.completions.create,
                     model="neuralmagic/gemma-2-2b-it-FP8",
                     messages=[
-                        {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt},
                     ],
                     temperature=0.4,
