@@ -1,10 +1,10 @@
 import logging
 import os
-from eval.parser import DataParser
 
 import openai
 import pandas as pd
 
+from eval.parser import DataParser
 from pipeline.config import settings
 from pipeline.prompts.evaluate import system_prompt, user_prompt
 from pipeline.rag.generator import LMGenerator
@@ -21,7 +21,9 @@ class Evaluator:
             else "https://api.openai.com/v1",
         )
 
-        self._parser = DataParser(os.path.join(os.path.dirname(os.path.dirname(__file__)), "qa"))
+        self._parser = DataParser(
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "qa")
+        )
 
     def _get_llm_evaluation(self, query, answer, truth):
         prompt = user_prompt.format(query, truth, answer)
@@ -55,48 +57,52 @@ class Evaluator:
 
         pipe = LMGenerator()
 
-        for i, data in enumerate(self._parser):
-            query = data["question"]
-            truth = data["gt_answer"]
+        logging.info("Starting evaluation...")
 
-            pipe_answer = pipe(query, use_drafter=True)
-            baseline_answer = pipe(query, use_drafter=False)
+        parsers = self._parser
+        for parser in parsers:
+            for i, data in enumerate(parser):
+                query = data["question"]
+                truth = data["gt_answer"]
 
-            pipe_evaluation = self._get_llm_evaluation(query, pipe_answer, truth)
-            baseline_evaluation = self._get_llm_evaluation(
-                query, baseline_answer, truth
-            )
+                pipe_answer = pipe(query, use_drafter=True)
+                baseline_answer = pipe(query, use_drafter=False)
 
-            pd.concat(
-                [
-                    pipe_df,
-                    {
-                        "question": query,
-                        "answer": pipe_answer,
-                        "truth": truth,
-                        "evaluation": pipe_evaluation,
-                    },
-                ]
-            )
-
-            pd.concat(
-                [
-                    baseline_df,
-                    {
-                        "question": query,
-                        "answer": baseline_answer,
-                        "truth": truth,
-                        "evaluation": baseline_evaluation,
-                    },
-                ]
-            )
-            
-            if i % 100 == 0:
-                pipe_accuracy = self._calculate_accuracy(pipe_df)
-                baseline_accuracy = self._calculate_accuracy(baseline_df)
-                logging.info(
-                    f"Pipe accuracy: {pipe_accuracy:.2f}%, Baseline accuracy: {baseline_accuracy:.2f}%"
+                pipe_evaluation = self._get_llm_evaluation(query, pipe_answer, truth)
+                baseline_evaluation = self._get_llm_evaluation(
+                    query, baseline_answer, truth
                 )
+
+                pd.concat(
+                    [
+                        pipe_df,
+                        {
+                            "question": query,
+                            "answer": pipe_answer,
+                            "truth": truth,
+                            "evaluation": pipe_evaluation,
+                        },
+                    ]
+                )
+
+                pd.concat(
+                    [
+                        baseline_df,
+                        {
+                            "question": query,
+                            "answer": baseline_answer,
+                            "truth": truth,
+                            "evaluation": baseline_evaluation,
+                        },
+                    ]
+                )
+
+                if i % 100 == 0:
+                    pipe_accuracy = self._calculate_accuracy(pipe_df)
+                    baseline_accuracy = self._calculate_accuracy(baseline_df)
+                    logging.info(
+                        f"Pipe accuracy: {pipe_accuracy:.2f}%, Baseline accuracy: {baseline_accuracy:.2f}%"
+                    )
 
         pipe_accuracy = self._calculate_accuracy(pipe_df)
         baseline_accuracy = self._calculate_accuracy(baseline_df)
