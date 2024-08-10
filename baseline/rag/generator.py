@@ -47,14 +47,16 @@ class LMGenerator:
         lowe_metric: float,
         draft_answers: List[str],
     ) -> str:
+        
+        # Convert numbers to percentages for the prompt
         prompt = user_prompt.format(
             query,
-            lowe_metric,
-            estimated_points[0].distance,
+            lowe_metric * 100,  
+            estimated_points[0].distance * 100,
             draft_answers[0],
-            estimated_points[1].distance,
+            estimated_points[1].distance * 100,
             draft_answers[1],
-            estimated_points[2].distance,
+            estimated_points[2].distance * 100,
             draft_answers[2],
         )
 
