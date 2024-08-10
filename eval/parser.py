@@ -30,7 +30,7 @@ class DataParser:
         return file_paths
 
     def __getitem__(self, ind: int) -> Generator[dict[str, str]]:
-        """Yields clean data from json with markup. JSON file is accessed by index.
+        """Yields instances of preprocessed data from json with markup. JSON file is accessed by index.
         Output dict structure: {"question":question, "gt_answer":gt_answer}"""
         file_path = self._file_paths[ind]
         raw_markup = json.load(file_path.open("r"))
@@ -39,15 +39,15 @@ class DataParser:
             raw_markup,
             desc=f"Parsing {file_path.name}| Total files: {len(self._file_paths)}| Parsed files: {ind}",
         ):
-            clean_data = dict()
+            preprocessed_data = dict()
             try:
                 gt_answer = data["Answer"]["Value"]
                 question = data["Answer"]["Question"]
             except KeyError:
                 continue
-            clean_data["question"] = question
-            clean_data["gt_answer"] = gt_answer
-            yield clean_data
+            preprocessed_data["question"] = question
+            preprocessed_data["gt_answer"] = gt_answer
+            yield preprocessed_data
         return
 
     def __len__(self):
