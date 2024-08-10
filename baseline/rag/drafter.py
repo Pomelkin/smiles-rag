@@ -1,22 +1,23 @@
-from sklearn.cluster import KMeans
-from baseline.knowledge_base import QdrantKnowledgeBase
-import numpy as np
-from .utils import (
-    choose_instances_from_clusters,
-    calculate_centroids,
-    calculate_uncertainty,
-    EstimatedPoint,
-    calculate_preference,
-)
-from baseline.config import settings
-import copy
-
-import openai
-from concurrent.futures import ThreadPoolExecutor
 import concurrent
-from qdrant_client import models
+import copy
+from concurrent.futures import ThreadPoolExecutor
 
-from baseline.prompts.gemma import user_prompt
+import numpy as np
+import openai
+from qdrant_client import models
+from sklearn.cluster import KMeans
+
+from baseline.config import settings
+from baseline.knowledge_base import QdrantKnowledgeBase
+from baseline.prompts.drafter import user_prompt
+
+from .utils import (
+    EstimatedPoint,
+    calculate_centroids,
+    calculate_preference,
+    calculate_uncertainty,
+    choose_instances_from_clusters,
+)
 
 
 class Drafter:
