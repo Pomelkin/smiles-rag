@@ -1,0 +1,107 @@
+import logging
+from parser import DataParser
+
+import openai
+import pandas as pd
+
+from pipeline.config import settings
+from pipeline.prompts.evaluate import system_prompt, user_prompt
+from pipeline.rag.generator import LMGenerator
+
+logging.basicConfig(filename="logs.log", level=logging.INFO)
+
+
+class Evaluator:
+    def __init__(self):
+        self._llm_client = openai.OpenAI(
+            api_key=settings.generator_api.key,
+            base_url=settings.generator_api.url
+            if settings.generator_api.llm_api.url is not None
+            else "https://api.openai.com/v1",
+        )
+
+        self._parser = DataParser("./data")
+
+    def _get_llm_evaluation(self, query, answer, truth):
+        prompt = user_prompt.format(query, truth, answer)
+
+        result = self._client.chat.completions.create(
+            model="neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a16",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.0,
+            max_tokens=2,
+        )
+        answer = result.choices[0].message.content.strip()
+
+        return answer
+
+    @staticmethod
+    def _calculate_accuracy(df):
+        total_count = len(df)
+        plus_count = df["evaluation"].value_counts().get("+", 0)
+        accuracy = (plus_count / total_count) * 100 if total_count > 0 else 0
+        return accuracy
+
+    def iterate(self):
+        pipe_df = pd.DataFrame(columns=["question", "answer", "truth", "evaluation"])
+
+        baseline_df = pd.DataFrame(
+            columns=["question", "answer", "truth", "evaluation"]
+        )
+
+        pipe = LMGenerator()
+
+        for i, data in enumerate(self._parser):
+            query = data["question"]
+            truth = data["gt_answer"]
+
+            pipe_answer = pipe(query, use_drafter=True)
+            baseline_answer = pipe(query, use_drafter=False)
+
+            pipe_evaluation = self._get_llm_evaluation(query, pipe_answer, truth)
+            baseline_evaluation = self._get_llm_evaluation(
+                query, baseline_answer, truth
+            )
+
+            pd.concat(
+                [
+                    pipe_df,
+                    {
+                        "question": query,
+                        "answer": pipe_answer,
+                        "truth": truth,
+                        "evaluation": pipe_evaluation,
+                    },
+                ]
+            )
+
+            pd.concat(
+                [
+                    baseline_df,
+                    {
+                        "question": query,
+                        "answer": baseline_answer,
+                        "truth": truth,
+                        "evaluation": baseline_evaluation,
+                    },
+                ]
+            )
+
+            if i % 1000 == 0:
+                pipe_accuracy = self._calculate_accuracy(pipe_df)
+                baseline_accuracy = self._calculate_accuracy(baseline_df)
+                logging.info(
+                    f"Pipe accuracy: {pipe_accuracy:.2f}%, Baseline accuracy: {baseline_accuracy:.2f}%"
+                )
+
+        pipe_accuracy = self._calculate_accuracy(pipe_df)
+        baseline_accuracy = self._calculate_accuracy(baseline_df)
+        logging.info(
+            f"Pipe accuracy: {pipe_accuracy:.2f}%, Baseline accuracy: {baseline_accuracy:.2f}%"
+        )
+
+        pipe_df.to_csv("pipe_eval.csv", index=False)
+        baseline_df.to_csv("baseline_eval.csv", index=False)
