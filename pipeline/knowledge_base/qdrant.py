@@ -3,7 +3,7 @@ import uuid
 import os
 import numpy as np
 import torch
-from baseline.config import settings
+from pipeline.config import settings
 from qdrant_client import QdrantClient, models
 from tqdm.auto import tqdm
 from pathlib import Path

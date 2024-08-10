@@ -3,13 +3,13 @@ from typing import List
 import openai
 from drafter import Drafter
 
-from baseline.config import settings
-from baseline.prompts.generator import (
+from pipeline.config import settings
+from pipeline.prompts.generator import (
     system_prompt,
     user_prompt,
     user_prompt_no_drafter,
 )
-from baseline.rag.utils import EstimatedPoint
+from pipeline.rag.utils import EstimatedPoint
 
 
 class LMGenerator:

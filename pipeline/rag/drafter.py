@@ -5,9 +5,9 @@ import numpy as np
 import openai
 from qdrant_client import models
 from sklearn.cluster import KMeans
-from baseline.config import settings
-from baseline.knowledge_base import QdrantKnowledgeBase
-from baseline.prompts.drafter import user_prompt
+from pipeline.config import settings
+from pipeline.knowledge_base import QdrantKnowledgeBase
+from pipeline.prompts.drafter import user_prompt
 from .utils import (
     EstimatedPoint,
     calculate_centroids,
