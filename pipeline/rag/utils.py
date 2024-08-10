@@ -8,7 +8,7 @@ from qdrant_client import models
 def filter_duplicate_payloads(
     points: list[models.ScoredPoint],
 ) -> list[models.ScoredPoint]:
-    """Remove duplicate payload from the list of"""
+    """Remove duplicate payload from the list of retrieved points"""
     payloads = [point.payload for point in points]
     filtered_points = []
     for point in points:
