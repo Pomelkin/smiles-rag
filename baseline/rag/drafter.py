@@ -23,10 +23,10 @@ class Drafter:
     def __init__(self):
         self._knowledge_base = QdrantKnowledgeBase()
 
-    def __call__(self, query: str, use_drafter: bool = True):
+    def __call__(self, query: str, create_answer: bool = True):
         """Get similar points with an estimation based on Lowe's score for the top 1 and the distance to the centroid of each cluster.
         If drafter is not used, the function returns only the top-1 point."""
-        if use_drafter:
+        if create_answer:
             retrieved_points, embedding = self._knowledge_base.get_similar_points(
                 query, k_nearest=9
             )
@@ -38,7 +38,9 @@ class Drafter:
             retrieved_points, embedding = self._knowledge_base.get_similar_points(
                 query, k_nearest=1
             )
-            estimated_points = EstimatedPoint(point=retrieved_points[0], distance=0.0)
+            estimated_points = [].append(
+                EstimatedPoint(point=retrieved_points[0], distance=0.0)
+            )
             draft_answers = ""
             lowe_metric = 0
 
