@@ -59,9 +59,12 @@ class Evaluator:
 
         logging.info("Starting evaluation...")
 
-        parsers = self._parser
-        for parser in parsers:
+        for j in range(len(self._parser)):
+            parser = self._parser[j]
+                        
             for i, data in enumerate(parser):
+                print(f"Processing {i}...")
+                
                 query = data["question"]
                 truth = data["gt_answer"]
 
