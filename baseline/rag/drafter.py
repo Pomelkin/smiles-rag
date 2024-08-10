@@ -7,25 +7,26 @@ from .utils import (
     calculate_centroid_distance,
     EstimatedPoint,
 )
-import concurrent
 import string
 from baseline.config import settings
 import copy
+
 import openai
 from concurrent.futures import ThreadPoolExecutor
+import concurrent
 from qdrant_client import models
+
+from baseline.prompts.gemma import system_prompt, user_prompt
 
 
 class Drafter:
     def __init__(self):
         self._knowledge_base = QdrantKnowledgeBase()
 
-    def __call__(
-        self, query: str, create_answers: bool = True
-    ) -> tuple[list[EstimatedPoint], float, list[str]]:
+    def __call__(self, query: str, use_drafter: bool = True):
         """Get similar points with an estimation based on Lowe's score for the top 1 and the distance to the centroid of each cluster.
         If drafter is not used, the function returns only the top-1 point."""
-        if create_answers:
+        if use_drafter:
             retrieved_points, embedding = self._knowledge_base.get_similar_points(
                 query, k_nearest=9
             )
@@ -37,11 +38,10 @@ class Drafter:
             retrieved_points, embedding = self._knowledge_base.get_similar_points(
                 query, k_nearest=1
             )
-            estimated_points = [].append(
-                EstimatedPoint(point=retrieved_points[0], distance=0.0)
-            )
+            estimated_points = EstimatedPoint(point=retrieved_points[0], distance=0.0)
             draft_answers = ""
             lowe_metric = 0
+
         return estimated_points, lowe_metric, draft_answers
 
     @staticmethod
@@ -60,11 +60,15 @@ class Drafter:
             futures = []
             for point in points:
                 data = point.point.payload["text"]
+                prompt = user_prompt.format(query, data)
                 prompt = prompt.substitute(query=query, data=data)
                 future = executor.submit(
                     client.chat.completions.create,
                     model="neuralmagic/gemma-2-2b-it-FP8",
-                    messages=[{"role": "user", "content": prompt}],
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
                     temperature=0.4,
                     top_p=50,
                     max_tokens=500,
