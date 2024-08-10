@@ -12,15 +12,21 @@ class QdrantConfig(BaseSettings):
     collection_name: str
 
 
-class LLMAPIConfig(BaseSettings):
+class DrafterAPIConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
-    url: AnyHttpUrl | None = None
-    key: str
+    drafter_url: AnyHttpUrl | None = None
+    drafter_key: str
+
+
+class GeneratorAPIConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
+    generator_url: AnyHttpUrl | None = None
+    generator_key: str
 
 
 class Settings(BaseSettings):
     qdrant: QdrantConfig = QdrantConfig()
-    llm_api: LLMAPIConfig = LLMAPIConfig()
+    drafter_api: DrafterAPIConfig = DrafterAPIConfig()
 
 
 settings = Settings()
