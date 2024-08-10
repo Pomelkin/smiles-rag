@@ -1,18 +1,18 @@
-system_prompt = "Ты - оценщик ответов."
+system_prompt = "You are an answer evaluator."
 
-user_prompt = """Тебе даны вопрос, правильный ответ и ответ пользователя.
-Твоя задача - сравнить ответ пользователя с правильным ответом и написать, правильно ли пользователь ответил на вопрос.
+user_prompt = """You are given the question, the correct answer, and the user's answer.
+Your task is to compare the user's answer with the correct answer and determine if the user answered correctly.
 
-ВОПРОС:
+QUESTION:
 {0}
 
-ПРАВИЛЬНЫЙ ОТВЕТ:
+CORRECT ANSWER:
 {1}
 
-ОТВЕТ ПОЛЬЗОВАТЕЛЯ:
+USER'S ANSWER:
 {2}
 
-Напиши в качестве оценки "+", если ответ правильный, или "-", если ответ неправильный. Никогда не пиши ничего кроме "+" или "-".
+Write "+" if the answer is correct, or "-" if the answer is incorrect. Never write anything other than "+" or "-".
 
-ОЦЕНКА:
+EVALUATION:
 """
