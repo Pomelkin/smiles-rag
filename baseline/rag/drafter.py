@@ -57,14 +57,12 @@ class Drafter:
         )
 
         with ThreadPoolExecutor(max_workers=3) as executor:
-            prompt = string.Template("Answer $query, base on this data: $data")
-
             # Create async tasks
             futures = []
             for point in points:
                 data = point.point.payload["text"]
                 prompt = user_prompt.format(query, data)
-                prompt = prompt.substitute(query=query, data=data)
+                
                 future = executor.submit(
                     client.chat.completions.create,
                     model="neuralmagic/gemma-2-2b-it-FP8",
