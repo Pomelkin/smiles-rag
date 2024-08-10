@@ -32,20 +32,25 @@ def calculate_centroids(clusters: np.ndarray, vectors: np.ndarray) -> np.ndarray
     return centroids
 
 
-def calculate_centroid_distance(
+def calculate_uncertainty(
     vectors: np.ndarray, centroids: np.ndarray, use_softmax: bool = False
 ) -> np.ndarray:
-    """Calculate the distance between each vector and its centroid."""
+    """Calculate the uncertainty metric base on the distance between each vector and its centroid. Higher - worse."""
     distances = np.zeros(vectors.shape[0])
     for i, (vector, centroid) in enumerate(zip(vectors, centroids)):
         distances[i] = euclidean_distances(vector[None, :], centroid[None, :])[0]
-
     if use_softmax:
         distances = softmax(distances, axis=0)
     return distances
 
 
+def calculate_preference(top_1_score: float, top_2_score: float) -> float:
+    """Calculate preference metric based on lowe's score of top-2 and top-1 similarity scores. Higher - better."""
+    preference_metric = 1 - top_2_score / top_1_score
+    return preference_metric
+
+
 @dataclass
 class EstimatedPoint:
     point: models.ScoredPoint
-    distance: float
+    uncertainty: float
