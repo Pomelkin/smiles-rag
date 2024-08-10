@@ -7,11 +7,12 @@ from .utils import (
     calculate_centroid_distance,
     EstimatedPoint,
 )
-import asyncio
+import concurrent
 import string
 from baseline.config import settings
 import copy
 import openai
+from concurrent.futures import ThreadPoolExecutor
 from qdrant_client import models
 
 
@@ -19,10 +20,12 @@ class Drafter:
     def __init__(self):
         self._knowledge_base = QdrantKnowledgeBase()
 
-    def __call__(self, query: str, use_drafter: bool = True):
+    def __call__(
+        self, query: str, create_answers: bool = True
+    ) -> tuple[list[EstimatedPoint], float, list[str]]:
         """Get similar points with an estimation based on Lowe's score for the top 1 and the distance to the centroid of each cluster.
         If drafter is not used, the function returns only the top-1 point."""
-        if use_drafter:
+        if create_answers:
             retrieved_points, embedding = self._knowledge_base.get_similar_points(
                 query, k_nearest=9
             )
@@ -34,53 +37,44 @@ class Drafter:
             retrieved_points, embedding = self._knowledge_base.get_similar_points(
                 query, k_nearest=1
             )
-            estimated_points = EstimatedPoint(point=retrieved_points[0], distance=0.0)
+            estimated_points = [].append(
+                EstimatedPoint(point=retrieved_points[0], distance=0.0)
+            )
             draft_answers = ""
             lowe_metric = 0
-
         return estimated_points, lowe_metric, draft_answers
 
     @staticmethod
     def draft_answers(query: str, points: list[EstimatedPoint]) -> list[str]:
         """Draft answers based on the selected points"""
 
-        # Getting answers in parallel (async way). U can call this "костыль"
-        async def get_answers() -> list[str]:
-            nonlocal query
-            nonlocal points
+        # Getting answers in async way.
+        client = openai.OpenAI(
+            api_key=settings.drafter_api.key, base_url=settings.drafter_api.url
+        )
 
-            client = openai.AsyncOpenAI(
-                api_key=settings.drafter_api.key, base_url=settings.drafter_api.url
-            )
-
+        with ThreadPoolExecutor(max_workers=3) as executor:
             prompt = string.Template("Answer $query, base on this data: $data")
 
             # Create async tasks
-            tasks = []
+            futures = []
             for point in points:
                 data = point.point.payload["text"]
                 prompt = prompt.substitute(query=query, data=data)
-                task = client.chat.completions.create(
+                future = executor.submit(
+                    client.chat.completions.create,
                     model="neuralmagic/gemma-2-2b-it-FP8",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.4,
                     top_p=50,
                     max_tokens=500,
                 )
-                tasks.append(task)
+                futures.append(future)
             # Run async tasks
-            results = await asyncio.gather(*tasks)
+            results = [future.result() for future in concurrent.futures.wait(futures)]
             # Process outputs
             answers = [result.choices[0].message for result in results]
-            return answers
-
-        # run asyncio eventloop
-        running_event_loop = asyncio.get_event_loop()
-        if running_event_loop is not None:
-            draft_answers = running_event_loop.run_until_complete(get_answers)
-        else:
-            draft_answers = asyncio.run(get_answers())
-        return draft_answers
+        return answers
 
     @staticmethod
     def estimate_points(
