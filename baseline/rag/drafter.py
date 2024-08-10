@@ -22,6 +22,10 @@ from baseline.prompts.gemma import user_prompt
 class Drafter:
     def __init__(self):
         self._knowledge_base = QdrantKnowledgeBase()
+        self._client = openai.OpenAI(
+            api_key=settings.drafter_api.key,
+            base_url=settings.drafter_api.url,
+        )
 
     def __call__(self, query: str, create_answer: bool = True):
         """Get similar points with an estimation based on Lowe's score for the top 1 and top 2 similarity score
@@ -46,47 +50,42 @@ class Drafter:
             preference_metric = 0
         return estimated_points, preference_metric, draft_answers
 
-    @staticmethod
-    def draft_answers(query: str, points: list[EstimatedPoint]) -> list[str]:
+    def draft_answers(self, query: str, points: list[EstimatedPoint]) -> list[str]:
         """Draft answers based on the selected points"""
-
-        # Getting answers in async way.
-        client = openai.OpenAI(
-            api_key=settings.drafter_api.key,
-            base_url=settings.drafter_api.url,
-        )
-
         with ThreadPoolExecutor(max_workers=3) as executor:
             # Create async tasks
             futures = []
-            test_list = []
             for i, point in enumerate(points):
                 data = point.point.payload["text"]
                 prompt = user_prompt.format(query, data)
 
-                future = executor.submit(
-                    client.chat.completions.create,
-                    model="neuralmagic/gemma-2-2b-it-FP8",
-                    messages=[
-                        {"role": "user", "content": prompt},
-                    ],
-                    temperature=0.4,
-                    top_p=0.8,
-                    max_tokens=500,
-                )
+                future = executor.submit(self.generate_answer, i, prompt)
                 futures.append(future)
-                test_list.append(future)
+
             # Run async tasks
             done, _ = concurrent.futures.wait(futures)
-            done = reversed(done)
-            results = [future.result() for future in done]
 
-            for i, (future, test_future) in enumerate(zip(done, futures)):
-                assert future == test_future, i
-
-            # Process outputs
-            answers = [result.choices[0].message for result in results]
+            # Postprocess results
+            results = ["" for _ in range(len(futures))]
+            for future in done:
+                results[future.result()[0]] = future.result()[1]
+            answers = results
         return answers
+
+    def generate_answer(self, ind: int, prompt: str) -> tuple[int, str]:
+        """Generate the final answer based on prompt.
+        Ind is needed for sorting purposes due to the behavior of the ThreadPoolExecutor wait method"""
+        result = self._client.chat.completions.create(
+            model="neuralmagic/gemma-2-2b-it-FP8",
+            messages=[
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.4,
+            top_p=0.8,
+            max_tokens=500,
+        )
+        answer = result.choices[0].message.content
+        return ind, answer
 
     @staticmethod
     def estimate_points(
