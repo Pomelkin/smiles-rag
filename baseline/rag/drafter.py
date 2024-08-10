@@ -1,22 +1,20 @@
 import concurrent
 import copy
 from concurrent.futures import ThreadPoolExecutor
-
 import numpy as np
 import openai
 from qdrant_client import models
 from sklearn.cluster import KMeans
-
 from baseline.config import settings
 from baseline.knowledge_base import QdrantKnowledgeBase
 from baseline.prompts.drafter import user_prompt
-
 from .utils import (
     EstimatedPoint,
     calculate_centroids,
     calculate_preference,
     calculate_uncertainty,
     choose_instances_from_clusters,
+    filter_duplicate_payloads,
 )
 
 
@@ -32,18 +30,17 @@ class Drafter:
         """Get similar points with an estimation based on Lowe's score for the top 1 and top 2 similarity score
         and the distance to the centroid of each cluster.
         If drafter is not used, the function returns only the top-1 point."""
+        retrieved_points, embedding = self._knowledge_base.get_similar_points(
+            query, k_nearest=9 if create_answer else 1
+        )
+        retrieved_points = filter_duplicate_payloads(retrieved_points)
+
         if create_answer:
-            retrieved_points, embedding = self._knowledge_base.get_similar_points(
-                query, k_nearest=9
-            )
             estimated_points, preference_metric = self.estimate_points(
                 points=retrieved_points
             )
             draft_answers = self.draft_answers(query, estimated_points)
         else:
-            retrieved_points, embedding = self._knowledge_base.get_similar_points(
-                query, k_nearest=1
-            )
             estimated_points = [].append(
                 EstimatedPoint(point=retrieved_points[0], uncertainty=0.0)
             )

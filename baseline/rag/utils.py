@@ -5,6 +5,19 @@ from dataclasses import dataclass
 from qdrant_client import models
 
 
+def filter_duplicate_payloads(
+    points: list[models.ScoredPoint],
+) -> list[models.ScoredPoint]:
+    """Remove duplicate payload from the list of"""
+    payloads = [point.payload for point in points]
+    filtered_points = []
+    for point in points:
+        if point.payload in payloads:
+            filtered_points.append(point)
+            payloads.remove(point.payload)
+    return filtered_points
+
+
 def choose_instances_from_clusters(clusters: np.ndarray) -> list[int]:
     """Select instances from clusters based on cosine similarity and randomness.
     The function works as follows:
