@@ -63,7 +63,7 @@ class LMGenerator:
         )
 
         result = self._llm_client.chat.completions.create(
-            model="neuralmagic/gemma-2-2b-it-FP8",
+            model="neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a16",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt},
@@ -84,7 +84,7 @@ class LMGenerator:
         prompt = user_prompt_no_drafter.format(query, text)
 
         result = self._llm_client.chat.completions.create(
-            model="neuralmagic/gemma-2-2b-it-FP8",
+            model="neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a16",
             messages=[
                 {"role": "user", "content": prompt},
             ],
