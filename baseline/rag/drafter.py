@@ -1,18 +1,22 @@
-from sklearn.cluster import KMeans
-from baseline.knowledge_base import QdrantKnowledgeBase
-import numpy as np
-from .utils import (
-    choose_instances_from_clusters,
-    calculate_centroids,
-    calculate_centroid_distance,
-    EstimatedPoint,
-)
 import asyncio
-import string
-from baseline.config import settings
 import copy
+import string
+
+import numpy as np
 import openai
 from qdrant_client import models
+from sklearn.cluster import KMeans
+
+from baseline.config import settings
+from baseline.knowledge_base import QdrantKnowledgeBase
+from baseline.prompts.gemma import system_prompt, user_prompt
+
+from .utils import (
+    EstimatedPoint,
+    calculate_centroid_distance,
+    calculate_centroids,
+    choose_instances_from_clusters,
+)
 
 
 class Drafter:
@@ -53,16 +57,17 @@ class Drafter:
                 api_key=settings.drafter_api.key, base_url=settings.drafter_api.url
             )
 
-            prompt = string.Template("Answer $query, base on this data: $data")
-
             # Create async tasks
             tasks = []
             for point in points:
                 data = point.point.payload["text"]
-                prompt = prompt.substitute(query=query, data=data)
+                prompt = user_prompt.format(query, data)
                 task = client.chat.completions.create(
                     model="neuralmagic/gemma-2-2b-it-FP8",
-                    messages=[{"role": "user", "content": prompt}],
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
                     temperature=0.4,
                     top_p=50,
                     max_tokens=500,
