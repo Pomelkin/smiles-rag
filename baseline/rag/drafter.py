@@ -52,7 +52,8 @@ class Drafter:
 
         # Getting answers in async way.
         client = openai.OpenAI(
-            api_key=settings.drafter_api.key, base_url=settings.drafter_api.url
+            api_key=settings.drafter_api.key,
+            base_url=settings.drafter_api.url,
         )
 
         with ThreadPoolExecutor(max_workers=3) as executor:

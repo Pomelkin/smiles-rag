@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
@@ -13,14 +14,14 @@ class QdrantConfig(BaseSettings):
 
 class DrafterAPIConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
-    drafter_url: str | None = None
-    drafter_key: str = ""
+    url: str | None = Field(alias="DRAFTER_URL", default=None)
+    key: str = Field(alias="DRAFTER_KEY", default="")
 
 
 class GeneratorAPIConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
-    generator_url: str | None = None
-    generator_key: str = ""
+    generator_url: str | None = Field(alias="GENERATOR_URL", default=None)
+    generator_key: str = Field(alias="GENERATOR_KEY", default="")
 
 
 class Settings(BaseSettings):
