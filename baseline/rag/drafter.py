@@ -53,7 +53,7 @@ class Drafter:
                 api_key=settings.drafter_api.key, base_url=settings.drafter_api.url
             )
 
-            prompt = string.Template("something ... $query, $data")
+            prompt = string.Template("Answer $query, base on this data: $data")
 
             # Create async tasks
             tasks = []
@@ -61,17 +61,25 @@ class Drafter:
                 data = point.point.payload["text"]
                 prompt = prompt.substitute(query=query, data=data)
                 task = client.chat.completions.create(
-                    model="", messages=[{"role": "user", "content": prompt}]
+                    model="neuralmagic/gemma-2-2b-it-FP8",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.4,
+                    top_p=50,
+                    max_tokens=500,
                 )
                 tasks.append(task)
             # Run async tasks
             results = await asyncio.gather(*tasks)
             # Process outputs
-            answers = [result.choices[0].message.content for result in results]
+            answers = [result.choices[0].message for result in results]
             return answers
 
         # run asyncio eventloop
-        draft_answers = asyncio.run(get_answers())
+        running_event_loop = asyncio.get_event_loop()
+        if running_event_loop is not None:
+            draft_answers = running_event_loop.run_until_complete(get_answers)
+        else:
+            draft_answers = asyncio.run(get_answers())
         return draft_answers
 
     @staticmethod
