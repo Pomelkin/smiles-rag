@@ -12,21 +12,29 @@ class QdrantConfig(BaseSettings):
     collection_name: str
 
 
+class RedisConfig(BaseSettings):
+    model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
+    host: str = Field(alias="REDIS_HOST", default="localhost")
+    port: int = Field(alias="REDIS_PORT", default=6379)
+
+
 class DrafterAPIConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
-    url: str | None = Field(alias="DRAFTER_URL", default=None)
+    url: str = Field(alias="DRAFTER_URL", default=None, validate_default=False)
     key: str = Field(alias="DRAFTER_KEY", default="")
 
 
 class GeneratorAPIConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", extra="ignore")
-    url: str | None = Field(alias="GENERATOR_URL", default=None)
+    url: str = Field(alias="GENERATOR_URL", default=None, validate_default=False)
     key: str = Field(alias="GENERATOR_KEY", default="")
 
 
 class Settings(BaseSettings):
     qdrant: QdrantConfig = QdrantConfig()
     drafter_api: DrafterAPIConfig = DrafterAPIConfig()
+    generator_api: GeneratorAPIConfig = GeneratorAPIConfig()
+    redis: RedisConfig = RedisConfig()
 
 
 settings = Settings()

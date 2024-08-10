@@ -3,21 +3,21 @@ from typing import List
 import openai
 from drafter import Drafter
 
-from baseline.config import settings
-from baseline.prompts.generator import (
+from pipeline.config import settings
+from pipeline.prompts.generator import (
     system_prompt,
     user_prompt,
     user_prompt_no_drafter,
 )
-from baseline.rag.utils import EstimatedPoint
+from pipeline.rag.utils import EstimatedPoint
 
 
 class LMGenerator:
     def __init__(self):
         self._llm_client = openai.OpenAI(
-            api_key=settings.llm_api.key,
-            base_url=settings.llm_api.url
-            if settings.llm_api.url is not None
+            api_key=settings.generator_api.key,
+            base_url=settings.generator_api.url
+            if settings.generator_api.llm_api.url is not None
             else "https://api.openai.com/v1",
         )
         self._drafter = Drafter()
@@ -73,7 +73,7 @@ class LMGenerator:
             max_tokens=500,
         )
 
-        answer = result.choices[0].message
+        answer = result.choices[0].message.content
         return answer
 
     def _answer_without_drafter(
@@ -93,5 +93,5 @@ class LMGenerator:
             max_tokens=500,
         )
 
-        answer = result.choices[0].message
+        answer = result.choices[0].message.content
         return answer
