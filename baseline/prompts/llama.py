@@ -1,25 +1,25 @@
-system_prompt = "Ты - умный помощник, который отвечает на вопросы, используя 3 ответа экспертов и сведения об этих ответах. Ответы экспертов отсортированы по рейтингу."
+system_prompt = "You are a smart assistant who answers questions based on 3 experts' answers and these answers' metrics. The answers are sorted by experts' rating."
 
-user_prompt = """ВОПРОС:
+user_prompt = """QUESTION:
 {0}
 
-ОТВЕТЫ ЭКСПЕРТОВ:
-Эксперт 1 (предпочтительность {1}%, неопределенность {2}%): {3};
-Эксперт 2 (неопределенность {4}%): {5};
-Эксперт 3 (неопределенность {6}%): {7};
+EXPERT ANSWERS:
+Expert 1 (preference {1}%, uncertainty {2}%): {3};
+Expert 2 (uncertainty {4}%): {5};
+Expert 3 (uncertainty {6}%): {7}.
 
-Учти мнения экспертов и сведения об ответах и дай точный и полный ответ на вопрос.
+Consider the expert opinions and the answers' metrics and provide an accurate and comprehensive answer to the question.
 
-ОТВЕТ:
+ANSWER:
 """
 
-user_prompt_no_drafter = """Ты - умный помощник. Ответь на вопрос пользователя, используя информацию.
+user_prompt_no_drafter = """You are a smart assistant. Answer the user's question using the provided information.
 
-ВОПРОС:
+QUESTION:
 {0}
 
-ИНФОРМАЦИЯ:
+INFORMATION:
 {1}
 
-ОТВЕТ:
+ANSWER:
 """

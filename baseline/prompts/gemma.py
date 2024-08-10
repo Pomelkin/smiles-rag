@@ -1,10 +1,9 @@
-user_prompt = """Ты - умный помощник, который точно отвечает на вопросы, используя информацию.
+user_prompt = """You are a smart assistant who answers questions accurately using the provided information.
 
-Вопрос:
+Question:
 {0}
 
-Информация:
+Information:
 {1}
 
-Точный ответ на вопрос:
-"""
+Accurate answer to the question:"""
