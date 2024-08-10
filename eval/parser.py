@@ -1,13 +1,14 @@
-from pathlib import Path
 import json
-from tqdm.auto import tqdm
+from pathlib import Path
 from typing import Generator
+
+from tqdm.auto import tqdm
 
 
 class DataParser:
     """Dataset markup parser. Parse data from TriviaQA bench markup and return clean data for evaluation"""
 
-    def __init__(self, path: Path | str, clean_data: bool = False) -> None:
+    def __init__(self, path: Path | str) -> None:
         if isinstance(path, str):
             path = Path(path)
 

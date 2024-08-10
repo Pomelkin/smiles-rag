@@ -1,5 +1,6 @@
 import logging
-from parser import DataParser
+import os
+from eval.parser import DataParser
 
 import openai
 import pandas as pd
@@ -16,11 +17,11 @@ class Evaluator:
         self._llm_client = openai.OpenAI(
             api_key=settings.generator_api.key,
             base_url=settings.generator_api.url
-            if settings.generator_api.llm_api.url is not None
+            if settings.generator_api.url is not None
             else "https://api.openai.com/v1",
         )
 
-        self._parser = DataParser("./data")
+        self._parser = DataParser(os.path.join(os.path.dirname(os.path.dirname(__file__)), "qa"))
 
     def _get_llm_evaluation(self, query, answer, truth):
         prompt = user_prompt.format(query, truth, answer)
@@ -89,8 +90,8 @@ class Evaluator:
                     },
                 ]
             )
-
-            if i % 1000 == 0:
+            
+            if i % 100 == 0:
                 pipe_accuracy = self._calculate_accuracy(pipe_df)
                 baseline_accuracy = self._calculate_accuracy(baseline_df)
                 logging.info(
@@ -105,3 +106,8 @@ class Evaluator:
 
         pipe_df.to_csv("pipe_eval.csv", index=False)
         baseline_df.to_csv("baseline_eval.csv", index=False)
+
+
+if __name__ == "__main__":
+    evaluator = Evaluator()
+    evaluator.iterate()

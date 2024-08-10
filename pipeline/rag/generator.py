@@ -1,7 +1,7 @@
 from typing import List
 
 import openai
-from drafter import Drafter
+from pipeline.rag.drafter import Drafter
 
 from pipeline.config import settings
 from pipeline.prompts.generator import (
@@ -17,7 +17,7 @@ class LMGenerator:
         self._llm_client = openai.OpenAI(
             api_key=settings.generator_api.key,
             base_url=settings.generator_api.url
-            if settings.generator_api.llm_api.url is not None
+            if settings.generator_api.url is not None
             else "https://api.openai.com/v1",
         )
         self._drafter = Drafter()
