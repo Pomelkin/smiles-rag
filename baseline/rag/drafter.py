@@ -69,7 +69,7 @@ class Drafter:
                         {"role": "user", "content": prompt},
                     ],
                     temperature=0.4,
-                    top_p=50,
+                    top_p=0.8,
                     max_tokens=500,
                 )
                 futures.append(future)
@@ -101,7 +101,7 @@ class Drafter:
         )
 
         # Calculate lowe's score
-        lowe_metric = 1 - points[0].score / points[1].score
+        lowe_metric = 1 - points[1].score / points[0].score
 
         # Collect points and their metrics
         results = []
