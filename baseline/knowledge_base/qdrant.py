@@ -214,7 +214,7 @@ class QdrantKnowledgeBase:
                         break
                     except Exception as e:
                         exception_count += 1
-                        if exception_count == 10:
+                        if exception_count == 3:
                             print(
                                 "❌  Error uploading data to the vector database, skipping..."
                             )
