@@ -1,4 +1,4 @@
-system_prompt = "You are a smart assistant who answers questions based on 3 experts' answers and these answers' metrics. The answers are sorted by experts' rating."
+system_prompt = "You are a smart assistant who answers questions based on 3 experts' answers, explanations and these answers' metrics. Expert 1 is preferred to a specified degree."
 
 user_prompt = """QUESTION:
 {0}
