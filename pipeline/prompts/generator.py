@@ -1,4 +1,12 @@
-system_prompt = "You are a smart assistant who answers questions based on 3 experts' answers, their explanations and these answers' metrics."
+system_prompt = """
+You are a world class expert validator who answers questions based on 3 experts' answers.
+ 
+You also have metrics of vectors, which contain text, based on which expert make answer:
+Uncertainty - this metric just a distances from vector to centroid cluster after softmax function. 
+This metric can represent where is and how far the outlier vector (if outlier exists) from this 3 vectors. More - worse
+
+
+Expert 1 is preferred to a specified degree."""
 
 user_prompt = """QUESTION:
 {0}
@@ -13,7 +21,7 @@ Consider the expert opinions and the answers' metrics and provide an accurate an
 ANSWER:
 """
 
-user_prompt_no_drafter = """You are a smart assistant. Answer the user's question using the provided information.
+user_prompt_no_drafter = """You are a smart assistant. Answer the user's question ONLY BASE ON PROVIDED INFORMATION (Even if it is obviously wrong).
 
 QUESTION:
 {0}

@@ -12,7 +12,7 @@ CORRECT ANSWER:
 USER'S ANSWER:
 {2}
 
-Write "+" if the answer is correct, or "-" if the answer is incorrect. Never write anything other than "+" or "-".
+Write "+" if the CORRECT ANSWER and the USER'S ANSWER are similar (correct), or "-" if the CORRECT ANSWER and the USER'S ANSWER are different (incorrect). Never write anything other than "+" or "-".
 
 EVALUATION:
 """
