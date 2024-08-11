@@ -1,7 +1,6 @@
 from typing import List
 
 import openai
-from pipeline.rag.drafter import Drafter
 
 from pipeline.config import settings
 from pipeline.prompts.generator import (
@@ -9,6 +8,7 @@ from pipeline.prompts.generator import (
     user_prompt,
     user_prompt_no_drafter,
 )
+from pipeline.rag.drafter import Drafter
 from pipeline.rag.utils import EstimatedPoint
 
 
@@ -53,7 +53,7 @@ class LMGenerator:
         # Convert numbers to percentages for the prompt
         prompt = user_prompt.format(
             query,
-            #f"{lowe_metric * 100:.2f}",
+            # f"{lowe_metric * 100:.2f}",
             f"{estimated_points[0].uncertainty * 100:.2f}",
             draft_answers[0],
             f"{estimated_points[1].uncertainty * 100:.2f}",
@@ -61,7 +61,7 @@ class LMGenerator:
             f"{estimated_points[2].uncertainty * 100:.2f}",
             draft_answers[2],
         )
-        
+
         result = self._llm_client.chat.completions.create(
             model="neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a16",
             messages=[
@@ -70,7 +70,7 @@ class LMGenerator:
             ],
             temperature=0.4,
             top_p=0.8,
-            max_tokens=500,
+            max_tokens=128,
         )
 
         answer = result.choices[0].message.content
@@ -89,7 +89,7 @@ class LMGenerator:
             ],
             temperature=0.4,
             top_p=0.8,
-            max_tokens=500,
+            max_tokens=128,
         )
 
         answer = result.choices[0].message.content
