@@ -66,40 +66,46 @@ class Evaluator:
                 query = data["question"]
                 truth = data["gt_answer"]
 
-                pipe_answer = pipe(query, use_drafter=True)
-                baseline_answer = pipe(query, use_drafter=False)
+                try:
+                    pipe_answer = pipe(query, use_drafter=True)
+                    baseline_answer = pipe(query, use_drafter=False)
 
-                pipe_evaluation = self._get_llm_evaluation(query, pipe_answer, truth)
-                baseline_evaluation = self._get_llm_evaluation(
-                    query, baseline_answer, truth
-                )
+                    pipe_evaluation = self._get_llm_evaluation(
+                        query, pipe_answer, truth
+                    )
+                    baseline_evaluation = self._get_llm_evaluation(
+                        query, baseline_answer, truth
+                    )
 
-                new_row = pd.DataFrame(
-                    {
-                        "question": [query],
-                        "answer": [pipe_answer],
-                        "truth": [truth],
-                        "evaluation": [pipe_evaluation],
-                    }
-                )
+                    new_row = pd.DataFrame(
+                        {
+                            "question": [query],
+                            "answer": [pipe_answer],
+                            "truth": [truth],
+                            "evaluation": [pipe_evaluation],
+                        }
+                    )
 
-                # Concatenate the DataFrames
-                pipe_df = pd.concat([pipe_df, new_row], ignore_index=True)
+                    # Concatenate the DataFrames
+                    pipe_df = pd.concat([pipe_df, new_row], ignore_index=True)
 
-                baseline_df = pd.concat(
-                    [
-                        baseline_df,
-                        pd.DataFrame(
-                            {
-                                "question": [query],
-                                "answer": [baseline_answer],
-                                "truth": [truth],
-                                "evaluation": [baseline_evaluation],
-                            }
-                        ),
-                    ],
-                    ignore_index=True,
-                )
+                    baseline_df = pd.concat(
+                        [
+                            baseline_df,
+                            pd.DataFrame(
+                                {
+                                    "question": [query],
+                                    "answer": [baseline_answer],
+                                    "truth": [truth],
+                                    "evaluation": [baseline_evaluation],
+                                }
+                            ),
+                        ],
+                        ignore_index=True,
+                    )
+                    
+                except Exception as e:
+                    logging.error(e)
 
                 if i % 10 == 0:
                     pipe_accuracy = self._calculate_accuracy(pipe_df)
@@ -107,6 +113,7 @@ class Evaluator:
                     logging.info(
                         f"Pipe accuracy: {pipe_accuracy:.2f}%, Baseline accuracy: {baseline_accuracy:.2f}%"
                     )
+                
 
         pipe_accuracy = self._calculate_accuracy(pipe_df)
         baseline_accuracy = self._calculate_accuracy(baseline_df)
