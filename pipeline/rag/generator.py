@@ -61,7 +61,7 @@ class LMGenerator:
             estimated_points[2].uncertainty * 100,
             draft_answers[2],
         )
-
+        
         result = self._llm_client.chat.completions.create(
             model="neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a16",
             messages=[
@@ -69,7 +69,7 @@ class LMGenerator:
                 {"role": "user", "content": prompt},
             ],
             temperature=0.4,
-            top_p=50,
+            top_p=0.8,
             max_tokens=500,
         )
 
@@ -82,14 +82,14 @@ class LMGenerator:
         text = estimated_points[0].point.payload["text"]
 
         prompt = user_prompt_no_drafter.format(query, text)
-
+        print(prompt)
         result = self._llm_client.chat.completions.create(
             model="neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a16",
             messages=[
                 {"role": "user", "content": prompt},
             ],
             temperature=0.4,
-            top_p=50,
+            top_p=0.8,
             max_tokens=500,
         )
 

@@ -39,13 +39,15 @@ class DataParser:
         for data in tqdm(
             raw_markup,
             desc=f"Parsing {file_path.name}| Total files: {len(self._file_paths)}| Parsed files: {ind}",
-        ):
+        ):  
             preprocessed_data = dict()
             try:
                 gt_answer = data["Answer"]["Value"]
                 question = data["Question"]
+                question = data["Question"]
             except KeyError:
                 continue
+                
             preprocessed_data["question"] = question
             preprocessed_data["gt_answer"] = gt_answer
             yield preprocessed_data

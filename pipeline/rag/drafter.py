@@ -1,13 +1,16 @@
 import concurrent
 import copy
 from concurrent.futures import ThreadPoolExecutor
+
 import numpy as np
 import openai
 from qdrant_client import models
 from sklearn.cluster import KMeans
+
 from pipeline.config import settings
 from pipeline.knowledge_base import QdrantKnowledgeBase
 from pipeline.prompts.drafter import user_prompt
+
 from .utils import (
     EstimatedPoint,
     calculate_centroids,
@@ -41,9 +44,9 @@ class Drafter:
             )
             draft_answers = self.draft_answers(query, estimated_points)
         else:
-            estimated_points = [].append(
+            estimated_points = [
                 EstimatedPoint(point=retrieved_points[0], uncertainty=0.0)
-            )
+            ]
             draft_answers = ""
             preference_metric = 0
         return estimated_points, preference_metric, draft_answers

@@ -28,7 +28,7 @@ class Evaluator:
     def _get_llm_evaluation(self, query, answer, truth):
         prompt = user_prompt.format(query, truth, answer)
 
-        result = self._client.chat.completions.create(
+        result = self._llm_client.chat.completions.create(
             model="neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a16",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -61,10 +61,8 @@ class Evaluator:
 
         for j in range(len(self._parser)):
             parser = self._parser[j]
-                        
+
             for i, data in enumerate(parser):
-                print(f"Processing {i}...")
-                
                 query = data["question"]
                 truth = data["gt_answer"]
 
@@ -76,31 +74,34 @@ class Evaluator:
                     query, baseline_answer, truth
                 )
 
-                pd.concat(
-                    [
-                        pipe_df,
-                        {
-                            "question": query,
-                            "answer": pipe_answer,
-                            "truth": truth,
-                            "evaluation": pipe_evaluation,
-                        },
-                    ]
+                new_row = pd.DataFrame(
+                    {
+                        "question": [query],
+                        "answer": [pipe_answer],
+                        "truth": [truth],
+                        "evaluation": [pipe_evaluation],
+                    }
                 )
 
-                pd.concat(
+                # Concatenate the DataFrames
+                pipe_df = pd.concat([pipe_df, new_row], ignore_index=True)
+
+                baseline_df = pd.concat(
                     [
                         baseline_df,
-                        {
-                            "question": query,
-                            "answer": baseline_answer,
-                            "truth": truth,
-                            "evaluation": baseline_evaluation,
-                        },
-                    ]
+                        pd.DataFrame(
+                            {
+                                "question": [query],
+                                "answer": [baseline_answer],
+                                "truth": [truth],
+                                "evaluation": [baseline_evaluation],
+                            }
+                        ),
+                    ],
+                    ignore_index=True,
                 )
 
-                if i % 100 == 0:
+                if i % 1 == 10:
                     pipe_accuracy = self._calculate_accuracy(pipe_df)
                     baseline_accuracy = self._calculate_accuracy(baseline_df)
                     logging.info(
