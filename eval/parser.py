@@ -43,7 +43,7 @@ class DataParser:
             preprocessed_data = dict()
             try:
                 gt_answer = data["Answer"]["Value"]
-                question = data["Answer"]["Question"]
+                question = data["Question"]
             except KeyError:
                 continue
             preprocessed_data["question"] = question
