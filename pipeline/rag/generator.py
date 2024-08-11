@@ -53,12 +53,12 @@ class LMGenerator:
         # Convert numbers to percentages for the prompt
         prompt = user_prompt.format(
             query,
-            lowe_metric * 100,
-            estimated_points[0].uncertainty * 100,
+            f"{lowe_metric * 100:.2f}",
+            f"{estimated_points[0].uncertainty * 100:.2f}",
             draft_answers[0],
-            estimated_points[1].uncertainty * 100,
+            f"{estimated_points[1].uncertainty * 100:.2f}",
             draft_answers[1],
-            estimated_points[2].uncertainty * 100,
+            f"{estimated_points[2].uncertainty * 100:.2f}",
             draft_answers[2],
         )
         
@@ -82,7 +82,6 @@ class LMGenerator:
         text = estimated_points[0].point.payload["text"]
 
         prompt = user_prompt_no_drafter.format(query, text)
-        print(prompt)
         result = self._llm_client.chat.completions.create(
             model="neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a16",
             messages=[

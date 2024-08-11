@@ -101,7 +101,7 @@ class Evaluator:
                     ignore_index=True,
                 )
 
-                if i % 1 == 10:
+                if i % 10 == 0:
                     pipe_accuracy = self._calculate_accuracy(pipe_df)
                     baseline_accuracy = self._calculate_accuracy(baseline_df)
                     logging.info(

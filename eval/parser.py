@@ -34,7 +34,7 @@ class DataParser:
         """Yields instances of preprocessed data from json with markup. JSON file is accessed by index.
         Output dict structure: {"question":question, "gt_answer":gt_answer}"""
         file_path = self._file_paths[ind]
-        raw_markup = json.load(file_path.open("r"))
+        raw_markup = json.load(file_path.open("r"))["Data"]
 
         for data in tqdm(
             raw_markup,
@@ -43,7 +43,6 @@ class DataParser:
             preprocessed_data = dict()
             try:
                 gt_answer = data["Answer"]["Value"]
-                question = data["Question"]
                 question = data["Question"]
             except KeyError:
                 continue
