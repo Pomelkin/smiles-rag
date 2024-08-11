@@ -1,6 +1,7 @@
 import logging
 import os
 
+import llm_blender
 import openai
 import pandas as pd
 
@@ -24,6 +25,9 @@ class Evaluator:
         self._parser = DataParser(
             os.path.join(os.path.dirname(os.path.dirname(__file__)), "qa")
         )
+
+        self._blender = llm_blender.Blender()
+        self._blender.loadranker("llm-blender/PairRM", device="cpu")
 
     def _get_llm_evaluation(self, query, answer, truth):
         prompt = user_prompt.format(query, truth, answer)
@@ -70,12 +74,19 @@ class Evaluator:
                     pipe_answer = pipe(query, use_drafter=True)
                     baseline_answer = pipe(query, use_drafter=False)
 
-                    pipe_evaluation = self._get_llm_evaluation(
-                        query, pipe_answer, truth
-                    )
-                    baseline_evaluation = self._get_llm_evaluation(
-                        query, baseline_answer, truth
-                    )
+                    comparison = self._blender.compare(query, pipe_answer, baseline_answer)[0]
+                    
+                    if comparison:
+                        pipe_evaluation = self._get_llm_evaluation(
+                            query, pipe_answer, truth
+                        )
+                        baseline_evaluation = "-"
+
+                    else:
+                        pipe_evaluation = "-"
+                        baseline_evaluation = self._get_llm_evaluation(
+                            query, baseline_answer, truth
+                        )
 
                     new_row = pd.DataFrame(
                         {
@@ -103,7 +114,7 @@ class Evaluator:
                         ],
                         ignore_index=True,
                     )
-                    
+
                 except Exception as e:
                     logging.error(e)
 
@@ -113,7 +124,6 @@ class Evaluator:
                     logging.info(
                         f"Pipe accuracy: {pipe_accuracy:.2f}%, Baseline accuracy: {baseline_accuracy:.2f}%"
                     )
-                
 
         pipe_accuracy = self._calculate_accuracy(pipe_df)
         baseline_accuracy = self._calculate_accuracy(baseline_df)
