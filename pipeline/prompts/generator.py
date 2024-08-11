@@ -14,9 +14,9 @@ Expert 1 (uncertainty {1}%): {2};
 Expert 2 (uncertainty {3}%): {4};
 Expert 3 (uncertainty {5}%): {6}.
 
-Consider the expert opinions and the given metrics and provide an accurate and comprehensive answer to the question.
+Consider the expert opinions and the given metrics and provide ONLY a concise answer to the question without any rationale or explanation.
 
-ANSWER:
+CONCISE ANSWER TO THE QUESTION:
 """
 
 user_prompt_no_drafter = """You are a smart assistant. 

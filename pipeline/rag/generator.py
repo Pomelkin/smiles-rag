@@ -70,7 +70,7 @@ class LMGenerator:
             ],
             temperature=0.4,
             top_p=0.8,
-            max_tokens=128,
+            max_tokens=64,
         )
 
         answer = result.choices[0].message.content
@@ -89,7 +89,7 @@ class LMGenerator:
             ],
             temperature=0.4,
             top_p=0.8,
-            max_tokens=128,
+            max_tokens=64,
         )
 
         answer = result.choices[0].message.content

@@ -26,8 +26,8 @@ class Evaluator:
             os.path.join(os.path.dirname(os.path.dirname(__file__)), "qa")
         )
 
-        self._blender = llm_blender.Blender()
-        self._blender.loadranker("llm-blender/PairRM", device="cpu")
+        #self._blender = llm_blender.Blender()
+        #self._blender.loadranker("llm-blender/PairRM", device="cpu")
 
     def _get_llm_evaluation(self, query, answer, truth):
         prompt = user_prompt.format(query, truth, answer)
@@ -73,20 +73,13 @@ class Evaluator:
                 try:
                     pipe_answer = pipe(query, use_drafter=True)
                     baseline_answer = pipe(query, use_drafter=False)
-
-                    comparison = self._blender.compare(query, pipe_answer, baseline_answer)[0]
-                    
-                    if comparison:
-                        pipe_evaluation = self._get_llm_evaluation(
-                            query, pipe_answer, truth
-                        )
-                        baseline_evaluation = "-"
-
-                    else:
-                        pipe_evaluation = "-"
-                        baseline_evaluation = self._get_llm_evaluation(
-                            query, baseline_answer, truth
-                        )
+                        
+                    pipe_evaluation = self._get_llm_evaluation(
+                        query, pipe_answer, truth
+                    )
+                    baseline_evaluation = self._get_llm_evaluation(
+                        query, baseline_answer, truth
+                    )
 
                     new_row = pd.DataFrame(
                         {
