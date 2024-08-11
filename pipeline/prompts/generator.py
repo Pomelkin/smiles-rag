@@ -22,6 +22,7 @@ ANSWER:
 """
 
 user_prompt_no_drafter = """You are a smart assistant. Answer the user's question ONLY BASE ON PROVIDED INFORMATION (Even if it is obviously wrong).
+Don't write too much, Be concise
 
 QUESTION:
 {0}
