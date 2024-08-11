@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
-import copy
+from typing import Generator
+
 from tqdm.auto import tqdm
 
 
@@ -29,13 +30,12 @@ class DataParser:
         print(f"▶️ Found {len(file_paths)} markup files")
         return file_paths
 
-    def __getitem__(self, ind: int) -> list[dict[str, str]]:
+    def __getitem__(self, ind: int) -> Generator[dict[str, str], None, None]:
         """Yields instances of preprocessed data from json with markup. JSON file is accessed by index.
         Output dict structure: {"question":question, "gt_answer":gt_answer}"""
         file_path = self._file_paths[ind]
-        raw_markup = json.load(file_path.open("r"))["Data"]
+        raw_markup = json.load(file_path.open("r"))
 
-        clean_data = []
         for data in tqdm(
             raw_markup,
             desc=f"Parsing {file_path.name}| Total files: {len(self._file_paths)}| Parsed files: {ind}",
@@ -48,9 +48,8 @@ class DataParser:
                 continue
             preprocessed_data["question"] = question
             preprocessed_data["gt_answer"] = gt_answer
-            clean_data.append(copy.deepcopy(preprocessed_data))
-
-        return clean_data
+            yield preprocessed_data
+        return
 
     def __len__(self):
         return len(self._file_paths)
