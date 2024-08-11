@@ -1,12 +1,12 @@
-system_prompt = "You are a smart assistant who answers questions based on 3 experts' answers, explanations (split by '//') and these answers' metrics. Expert 1 is preferred to a specified degree."
+system_prompt = "You are a smart assistant who answers questions based on 3 experts' answers, their explanations and these answers' metrics."
 
 user_prompt = """QUESTION:
 {0}
 
 EXPERT ANSWERS:
-Expert 1 (preference {1}%, uncertainty {2}%): {3};
-Expert 2 (uncertainty {4}%): {5};
-Expert 3 (uncertainty {6}%): {7}.
+Expert 1 (uncertainty {1}%): {2};
+Expert 2 (uncertainty {3}%): {4};
+Expert 3 (uncertainty {5}%): {6}.
 
 Consider the expert opinions and the answers' metrics and provide an accurate and comprehensive answer to the question.
 

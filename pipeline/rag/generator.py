@@ -53,7 +53,7 @@ class LMGenerator:
         # Convert numbers to percentages for the prompt
         prompt = user_prompt.format(
             query,
-            f"{lowe_metric * 100:.2f}",
+            #f"{lowe_metric * 100:.2f}",
             f"{estimated_points[0].uncertainty * 100:.2f}",
             draft_answers[0],
             f"{estimated_points[1].uncertainty * 100:.2f}",
